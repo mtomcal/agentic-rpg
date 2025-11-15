@@ -1,6 +1,7 @@
 """Tests for character models."""
 import pytest
 from pydantic import ValidationError
+
 from agentic_rpg.models.character import Character, CharacterStats
 
 

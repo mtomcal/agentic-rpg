@@ -1,6 +1,7 @@
 """Tests for world models."""
 import pytest
 from pydantic import ValidationError
+
 from agentic_rpg.models.world import NPC, Location, WorldState
 
 

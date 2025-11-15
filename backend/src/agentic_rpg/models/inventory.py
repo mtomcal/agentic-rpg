@@ -1,6 +1,7 @@
 """Inventory-related data models."""
+from typing import Any
+
 from pydantic import BaseModel, Field
-from typing import Dict, Any
 
 
 class InventoryItem(BaseModel):
@@ -11,7 +12,7 @@ class InventoryItem(BaseModel):
     description: str = Field(default="", description="Item description")
     quantity: int = Field(default=1, ge=1, description="Quantity of item")
     weight: float = Field(default=1.0, ge=0, description="Weight per item")
-    properties: Dict[str, Any] = Field(
+    properties: dict[str, Any] = Field(
         default_factory=dict,
         description="Item-specific properties"
     )

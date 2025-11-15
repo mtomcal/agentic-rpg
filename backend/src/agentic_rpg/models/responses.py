@@ -1,6 +1,8 @@
 """API response models."""
+from typing import Any
+
 from pydantic import BaseModel, Field
-from typing import Dict, Any
+
 from .game_state import GameState
 
 
@@ -15,7 +17,7 @@ class GameResponse(BaseModel):
     """Response from game action."""
 
     response: str = Field(..., description="Narrative response")
-    state_updates: Dict[str, Any] = Field(
+    state_updates: dict[str, Any] = Field(
         default_factory=dict,
         description="State changes"
     )

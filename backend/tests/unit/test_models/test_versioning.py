@@ -1,5 +1,4 @@
 """Tests for schema versioning and migrations."""
-import pytest
 from agentic_rpg.models.versioning import SchemaVersion
 
 

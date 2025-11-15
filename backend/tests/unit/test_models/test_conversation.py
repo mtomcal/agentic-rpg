@@ -1,8 +1,10 @@
 """Tests for conversation models."""
-import pytest
 from datetime import datetime
+
+import pytest
 from pydantic import ValidationError
-from agentic_rpg.models.conversation import Message, Conversation
+
+from agentic_rpg.models.conversation import Conversation, Message
 
 
 class TestMessage:
@@ -56,7 +58,7 @@ class TestMessage:
 
     def test_message_invalid_role(self):
         """Test that role must be valid literal."""
-        with pytest.raises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError):
             Message(role="invalid", content="Test")
         # Pydantic should reject invalid role
 

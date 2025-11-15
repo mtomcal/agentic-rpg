@@ -1,6 +1,7 @@
 """Tests for inventory models."""
 import pytest
 from pydantic import ValidationError
+
 from agentic_rpg.models.inventory import Inventory, InventoryItem
 
 
