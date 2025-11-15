@@ -1,0 +1,98 @@
+[tool.poetry]
+name = "agentic-rpg"
+version = "0.1.0"
+description = "Agentic RPG - Dynamic AI-driven RPG game"
+authors = ["Your Team"]
+packages = [{include = "agentic_rpg", from = "src"}]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<4.0"
+fastapi = ">=0.121.0,<0.122.0"
+uvicorn = ">=0.38.0,<0.39.0"
+pydantic = ">=2.12.4,<3.0.0"
+pydantic-settings = ">=2.11.0,<3.0.0"
+langchain = ">=1.0.3,<2.0.0"
+langgraph = ">=1.0.2,<2.0.0"
+langchain-anthropic = ">=1.0.1,<2.0.0"
+python-multipart = ">=0.0.20,<0.0.21"
+websockets = ">=15.0.1,<16.0.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.4.2,<9.0.0"
+pytest-cov = ">=7.0.0,<8.0.0"
+pytest-asyncio = ">=1.2.0,<2.0.0"
+ruff = ">=0.14.3,<0.15.0"
+mypy = ">=1.18.2,<2.0.0"
+httpx = ">=0.28.1,<0.29.0"
+poethepoet = ">=0.37.0,<0.38.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poe.tasks]
+# Testing
+test = {cmd = "pytest tests/ -v --cov=src/agentic_rpg --cov-report=term-missing", help = "Run all tests with coverage"}
+test-unit = {cmd = "pytest tests/unit/ -v", help = "Run unit tests only"}
+test-integration = {cmd = "pytest tests/integration/ -v", help = "Run integration tests"}
+test-contracts = {cmd = "pytest tests/contracts/ -v -m contract", help = "Run contract tests"}
+test-fast = {cmd = "pytest tests/ -v -m 'not slow'", help = "Run fast tests only"}
+
+# Code quality
+lint = {cmd = "ruff check src tests", help = "Run linter"}
+format = {cmd = "ruff format src tests", help = "Format code"}
+format-check = {cmd = "ruff format --check src tests", help = "Check formatting"}
+typecheck = {cmd = "mypy src", help = "Run type checking"}
+
+# Combined checks
+check-all = ["format-check", "lint", "typecheck", "test-contracts", "test-unit"]
+
+# Generate types
+generate-types = {shell = "bash scripts/generate-types.sh", help = "Generate TypeScript types from OpenAPI"}
+generate-schemas = {cmd = "python scripts/generate_schemas.py", help = "Generate JSON schemas"}
+
+# Development
+dev = {cmd = "uvicorn agentic_rpg.api.main:app --reload", help = "Start dev server"}
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = ["E501"]  # Line length handled by formatter
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --strict-markers"
+markers = [
+    "contract: Contract tests for interface validation",
+    "integration: Integration tests requiring multiple components",
+    "slow: Slow-running tests (LLM calls, etc.)",
+    "requires_llm: Tests that require LLM API access",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["*/tests/*", "*/migrations/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
