@@ -1,13 +1,12 @@
 """Tests for game_state model."""
-import pytest
 from datetime import datetime
-from pydantic import ValidationError
-from agentic_rpg.models.game_state import GameState
+
 from agentic_rpg.models.character import Character, CharacterStats
-from agentic_rpg.models.inventory import Inventory
-from agentic_rpg.models.world import WorldState, Location
 from agentic_rpg.models.conversation import Conversation
+from agentic_rpg.models.game_state import GameState
+from agentic_rpg.models.inventory import Inventory
 from agentic_rpg.models.versioning import SchemaVersion
+from agentic_rpg.models.world import Location, WorldState
 
 
 class TestGameState:

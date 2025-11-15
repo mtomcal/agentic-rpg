@@ -1,11 +1,13 @@
 """Main game state model."""
-from pydantic import BaseModel, Field
 from datetime import datetime
+
+from pydantic import BaseModel, Field
+
 from .character import Character
-from .inventory import Inventory
-from .world import WorldState
 from .conversation import Conversation
+from .inventory import Inventory
 from .versioning import SchemaVersion
+from .world import WorldState
 
 
 class GameState(BaseModel):

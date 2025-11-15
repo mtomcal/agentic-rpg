@@ -1,7 +1,8 @@
 """Conversation-related data models."""
-from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Literal, Dict, Any, Optional
+from typing import Any, Literal
+
+from pydantic import BaseModel, Field
 
 
 class Message(BaseModel):
@@ -13,7 +14,7 @@ class Message(BaseModel):
         default_factory=datetime.utcnow,
         description="Message timestamp"
     )
-    metadata: Optional[Dict[str, Any]] = Field(
+    metadata: dict[str, Any] | None = Field(
         default=None,
         description="Optional message metadata"
     )

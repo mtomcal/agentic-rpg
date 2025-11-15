@@ -1,7 +1,7 @@
 """World-related data models."""
+from typing import Any
+
 from pydantic import BaseModel, Field
-from typing import Dict, Any
-from datetime import datetime
 
 
 class NPC(BaseModel):
@@ -11,7 +11,7 @@ class NPC(BaseModel):
     name: str = Field(..., description="NPC name")
     description: str = Field(..., description="NPC description")
     personality: str = Field(default="neutral", description="NPC personality type")
-    dialogue_state: Dict[str, Any] = Field(
+    dialogue_state: dict[str, Any] = Field(
         default_factory=dict,
         description="NPC dialogue state"
     )
@@ -29,7 +29,7 @@ class Location(BaseModel):
         description="Connected location IDs"
     )
     npcs: list[NPC] = Field(default_factory=list, description="NPCs at this location")
-    properties: Dict[str, Any] = Field(
+    properties: dict[str, Any] = Field(
         default_factory=dict,
         description="Location-specific properties"
     )

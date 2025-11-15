@@ -250,6 +250,10 @@ integration:
 - **Storage:**
   - Development: JSON files
   - Production: PostgreSQL + Redis cache
+- **Interface:** StateManager Protocol (see `src/agentic_rpg/services/interfaces.py`)
+  - Defines the contract for state management implementations
+  - Phase 0 includes MockStateManager for testing
+  - Production implementation coming in Phase 1
 
 #### 4.2.6. Event Bus
 - **Path:** `src/agentic_rpg/services/event_bus.py`
@@ -289,7 +293,7 @@ class GameTool(Protocol):
 
 class ToolRegistry:
     """Central registry for agent tools - prevents merge conflicts."""
-    
+
     _tools: dict[str, GameTool] = {}
     _categories: dict[str, list[str]] = {}
     
@@ -367,21 +371,26 @@ combat_tools = ToolRegistry.get_tools_by_category("combat")
 
 ```python
 # src/agentic_rpg/services/event_bus.py
-from typing import Callable, Any
+import logging
+from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
-import json
+
+logger = logging.getLogger(__name__)
 
 class EventType(str, Enum):
-    """Standard event types - teams can add more."""
+    """Standard event types - teams can add more as needed."""
     STATE_UPDATED = "state.updated"
-    COMBAT_STARTED = "combat.started"
-    COMBAT_ENDED = "combat.ended"
+    GAME_CREATED = "game.created"
     ITEM_ACQUIRED = "inventory.item_acquired"
     LOCATION_CHANGED = "world.location_changed"
-    NPC_SPAWNED = "npc.spawned"
-    ACHIEVEMENT_EARNED = "achievement.earned"
+    # Additional event types can be added by teams:
+    # COMBAT_STARTED = "combat.started"
+    # COMBAT_ENDED = "combat.ended"
+    # NPC_SPAWNED = "npc.spawned"
+    # ACHIEVEMENT_EARNED = "achievement.earned"
 
 @dataclass
 class EventSchema:
@@ -406,9 +415,9 @@ class EventSchema:
 class GameEvent:
     """Game event with validated payload."""
     type: str
-    payload: dict
+    payload: dict[str, object]
     source: str  # Component that triggered event
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     session_id: str | None = None
     
     def to_dict(self) -> dict:
@@ -422,11 +431,11 @@ class GameEvent:
 
 class EventBus:
     """Central event bus for component communication."""
-    
-    def __init__(self):
-        self._subscribers: dict[str, list[Callable]] = {}
+
+    def __init__(self) -> None:
+        self._subscribers: dict[str, list[Callable[[GameEvent], None]]] = {}
         self._schemas: dict[str, EventSchema] = {}
-        self._history: list[GameEvent] = []
+        self._history: deque[GameEvent] = deque(maxlen=1000)  # O(1) append/pop
         self._max_history = 1000
     
     def register_schema(self, schema: EventSchema) -> None:
@@ -435,7 +444,7 @@ class EventBus:
     
     def publish(self, event: GameEvent) -> None:
         """Publish event to all subscribers.
-        
+
         Validates event against schema if registered.
         Stores in history for debugging/replay.
         """
@@ -444,12 +453,10 @@ class EventBus:
             valid, error = self._schemas[event.type].validate(event.payload)
             if not valid:
                 raise ValueError(f"Invalid event payload: {error}")
-        
-        # Store in history
+
+        # Store in history (deque automatically handles max size)
         self._history.append(event)
-        if len(self._history) > self._max_history:
-            self._history.pop(0)
-        
+
         # Notify subscribers
         subscribers = self._subscribers.get(event.type, [])
         for callback in subscribers:
@@ -457,7 +464,7 @@ class EventBus:
                 callback(event)
             except Exception as e:
                 # Log but don't fail - one bad subscriber shouldn't break others
-                print(f"Error in event subscriber: {e}")
+                logger.exception(f"Error in event subscriber for {event.type}: {e}")
     
     def subscribe(self, event_type: str, callback: Callable[[GameEvent], None]) -> None:
         """Subscribe to specific event type."""
@@ -518,6 +525,16 @@ def on_location_change(event: GameEvent):
     pass
 
 event_bus.subscribe(EventType.LOCATION_CHANGED, on_location_change)
+
+# Singleton pattern (implemented in actual code)
+_event_bus_instance: EventBus | None = None
+
+def get_event_bus() -> EventBus:
+    """Get the singleton event bus instance."""
+    global _event_bus_instance
+    if _event_bus_instance is None:
+        _event_bus_instance = EventBus()
+    return _event_bus_instance
 ```
 
 ### 5.3. Feature Flags Pattern
@@ -1902,96 +1919,50 @@ health-check = {cmd = "python scripts/health_check.py", help = "Check integratio
 
 ### 11.1. Backend Configuration
 
+**Note:** Phase 0 implementation includes minimal configuration. Full configuration shown below will be implemented in subsequent phases.
+
+**Phase 0 - Minimal Configuration (Implemented):**
 ```python
 # src/agentic_rpg/config.py
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
-from typing import List
-import os
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     """Application configuration from environment variables."""
-    
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False
     )
-    
+
     # Application
     app_name: str = "Agentic RPG"
     app_env: str = "development"
     debug: bool = True
     log_level: str = "INFO"
-    
+
     # API Configuration
     api_host: str = "0.0.0.0"
     api_port: int = 8000
-    api_prefix: str = "/api/v1"
-    
+
     # CORS
-    cors_origins: List[str] = ["http://localhost:3000", "http://localhost:3001"]
-    cors_allow_credentials: bool = True
-    cors_allow_methods: List[str] = ["*"]
-    cors_allow_headers: List[str] = ["*"]
-    
-    # LLM Configuration
-    llm_provider: str = "anthropic"
-    llm_model: str = "claude-3-5-sonnet-20241022"
-    llm_api_key: str = ""
-    llm_temperature: float = 0.7
-    llm_max_tokens: int = 4000
-    llm_timeout: int = 30
-    
+    cors_origins: list[str] = ["http://localhost:3000"]
+
     # State Storage
-    state_storage_type: str = "json"  # json | postgres | redis
+    state_storage_type: str = "json"
     state_storage_path: Path = Path("./gamestate")
-    database_url: str = ""  # For postgres
-    redis_url: str = ""  # For redis
-    
-    # Session Configuration
-    session_timeout: int = 3600  # seconds
-    max_message_history: int = 100
-    max_sessions_per_user: int = 10
-    
-    # Feature Flags (from FeatureFlags class)
-    feature_combat_system: bool = False
-    feature_npc_personalities: bool = False
-    feature_world_persistence: bool = True
-    feature_websocket_updates: bool = False
-    feature_api_v2: bool = False
-    
+
     # Development Options
     use_mocks: bool = False
-    enable_debug_endpoints: bool = False
-    
-    # Observability
-    enable_tracing: bool = True
-    enable_metrics: bool = True
-    trace_agent_reasoning: bool = True
-    metrics_port: int = 9090
-    
-    # Rate Limiting
-    rate_limit_enabled: bool = True
-    rate_limit_requests: int = 100
-    rate_limit_window: int = 60  # seconds
-    
+
     def validate_config(self) -> None:
         """Validate configuration at startup."""
-        # Create storage paths
         if self.state_storage_type == "json":
             self.state_storage_path.mkdir(parents=True, exist_ok=True)
-        
-        # Validate LLM config
-        if not self.use_mocks and not self.llm_api_key:
-            raise ValueError("LLM_API_KEY must be set when not using mocks")
-        
-        # Validate database config
-        if self.state_storage_type == "postgres" and not self.database_url:
-            raise ValueError("DATABASE_URL required for postgres storage")
 
 # Global settings instance
-_settings = None
+_settings: Settings | None = None
 
 def get_settings() -> Settings:
     """Get or create settings instance."""
@@ -2000,6 +1971,14 @@ def get_settings() -> Settings:
         _settings = Settings()
         _settings.validate_config()
     return _settings
+```
+
+**Full Configuration (To Be Implemented):**
+```python
+# Additional settings to be added in future phases:
+# - api_prefix, CORS details, LLM configuration
+# - Database URLs, session configuration
+# - Feature flags, observability, rate limiting
 ```
 
 ### 11.2. Environment Configuration

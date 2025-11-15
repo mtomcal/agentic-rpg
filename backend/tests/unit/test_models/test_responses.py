@@ -1,12 +1,12 @@
 """Tests for API response models."""
-import pytest
 from datetime import datetime
-from agentic_rpg.models.responses import CreateGameResponse, GameResponse
-from agentic_rpg.models.game_state import GameState
+
 from agentic_rpg.models.character import Character, CharacterStats
-from agentic_rpg.models.inventory import Inventory
-from agentic_rpg.models.world import WorldState, Location
 from agentic_rpg.models.conversation import Conversation
+from agentic_rpg.models.game_state import GameState
+from agentic_rpg.models.inventory import Inventory
+from agentic_rpg.models.responses import CreateGameResponse, GameResponse
+from agentic_rpg.models.world import Location, WorldState
 
 
 class TestCreateGameResponse:
