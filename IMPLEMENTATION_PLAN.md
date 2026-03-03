@@ -37,8 +37,8 @@
 ### High Priority — Phase 2: State Manager + Event Bus
 
 - [x] 12. Write test fixtures in conftest.py (db_pool, clean_db, sample_game_state, event_bus)
-- [ ] 13. Write state manager tests (test_manager.py) — RED
-- [ ] 14. Implement StateManager (state/manager.py) — GREEN
+- [x] 13. Write state manager tests (test_manager.py) — RED
+- [x] 14. Implement StateManager (state/manager.py) — GREEN
 - [ ] 15. Write event bus tests (test_bus.py) — RED
 - [ ] 16. Implement EventBus (events/bus.py) + EventPayloadRegistry (events/schemas.py) — GREEN
 - [ ] 17. Write event persistence tests (test_persistence.py) — RED
@@ -85,6 +85,8 @@ Add rows here when you find things the plan missed or got wrong:
 | # | Discovery | Impact |
 |---|-----------|--------|
 | 1 | Sandbox has no outbound network — `uv sync` and `pip install` fail. pyproject.toml is correct but deps can't be installed in sandbox. Need network or pre-built venv. | All items needing `uv run pytest` |
+| 2 | pytest-asyncio needs `asyncio_default_test_loop_scope = "session"` to match session-scoped pool fixture, otherwise asyncpg gets "another operation is in progress" errors | All DB tests |
+| 3 | Session model `datetime.utcnow()` produces naive datetimes; manager and DB produce aware datetimes. Fixed by using `datetime.now(UTC)` everywhere. | State manager, any datetime comparisons |
 
 ## Per-Item Process
 

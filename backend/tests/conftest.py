@@ -36,14 +36,6 @@ TEST_DATABASE_URL = "postgresql://postgres:postgres@postgres:5432/agentic_rpg"
 # db_pool — session-scoped asyncpg connection pool
 # ---------------------------------------------------------------------------
 @pytest.fixture(scope="session")
-def event_loop():
-    """Create a session-scoped event loop for async fixtures."""
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest.fixture(scope="session")
 async def db_pool():
     """Create a session-scoped asyncpg connection pool and run migrations."""
     pool = await asyncpg.create_pool(
@@ -120,7 +112,8 @@ async def db_pool():
 @pytest.fixture
 async def clean_db(db_pool: asyncpg.Pool):
     """Truncate all tables before each test for isolation."""
-    await db_pool.execute("TRUNCATE events, sessions, players CASCADE")
+    async with db_pool.acquire() as conn:
+        await conn.execute("TRUNCATE events, sessions, players CASCADE")
     yield db_pool
 
 

@@ -1,6 +1,6 @@
 """Top-level game state Pydantic models."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any, Literal
 from uuid import UUID, uuid4
@@ -28,10 +28,10 @@ class Session(BaseModel):
     session_id: UUID = Field(default_factory=uuid4, description="Unique session identifier")
     player_id: UUID = Field(default_factory=uuid4, description="Player who owns this session")
     created_at: datetime = Field(
-        default_factory=datetime.utcnow, description="When the session was created"
+        default_factory=lambda: datetime.now(UTC), description="When the session was created"
     )
     updated_at: datetime = Field(
-        default_factory=datetime.utcnow, description="When the state was last modified"
+        default_factory=lambda: datetime.now(UTC), description="When the state was last modified"
     )
     schema_version: int = Field(default=1, description="State schema version")
     status: SessionStatus = Field(
@@ -53,7 +53,7 @@ class Message(BaseModel):
     role: MessageRole = Field(description="Who sent the message")
     content: str = Field(description="Message text")
     timestamp: datetime = Field(
-        default_factory=datetime.utcnow, description="When the message was sent"
+        default_factory=lambda: datetime.now(UTC), description="When the message was sent"
     )
     metadata: dict[str, Any] = Field(
         default_factory=dict, description="Additional message metadata"
