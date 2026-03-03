@@ -30,8 +30,8 @@
 - [x] 6. Write `docker-compose.yml` (postgres service, backend service, network, volume)
 - [x] 7. Write `backend/Dockerfile` (Python 3.12 slim, uv, uvicorn CMD)
 - [x] 8. Write all Pydantic models: character, inventory, world, story, game_state, events, api
-- [ ] 9. Set up Alembic: alembic.ini, env.py, initial migration (game_sessions + game_events tables)
-- [ ] 10. Write Phase 1 tests: test_schemas.py (all model tests) + test_health.py
+- [x] 9. Set up Alembic: alembic.ini, env.py, initial migration (game_sessions + game_events tables)
+- [x] 10. Write Phase 1 tests: test_schemas.py (all model tests) + test_health.py
 - [ ] 11. Run `uv sync` and `uv run pytest` — all Phase 1 tests green
 
 ### High Priority — Phase 2: State Manager + Event Bus
