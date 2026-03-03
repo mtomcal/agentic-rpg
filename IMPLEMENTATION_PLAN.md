@@ -70,7 +70,7 @@
 - [x] 4. API Client — lib/api.ts
 - [x] 5. WebSocket Client — lib/websocket.ts
 - [x] 6. State Management — lib/store.ts
-- [ ] 7. Layout & Styling — app/layout.tsx + dark theme
+- [x] 7. Layout & Styling — app/layout.tsx + dark theme
 - [ ] 8. ChatPanel Component
 - [ ] 9. CharacterPanel Component
 - [ ] 10. InventoryPanel Component

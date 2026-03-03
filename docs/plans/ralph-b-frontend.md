@@ -183,11 +183,11 @@ A single-page app where the user can create a game session and play through it v
 - [ ] Fixed width, full height
 
 #### Layout & Styling
-- [ ] `app/layout.tsx`: dark theme base styles (bg-gray-900, text-gray-100)
-- [ ] Global font: monospace or system monospace for game feel
-- [ ] Responsive: doesn't break on mobile (sidebar collapses or hides)
-- [ ] Loading spinner component for reuse
-- [ ] Consistent padding and spacing
+- [x] `app/layout.tsx`: dark theme base styles (bg-gray-900, text-gray-100)
+- [x] Global font: monospace or system monospace for game feel
+- [x] Responsive: doesn't break on mobile (sidebar collapses or hides)
+- [x] Loading spinner component for reuse
+- [x] Consistent padding and spacing
 
 #### WebSocket ↔ Store Integration
 - [ ] "connected" message → `setGameState(data.game_state)`, `setConnectionStatus("connected")`
