@@ -39,7 +39,7 @@
 - [x] 12. Write test fixtures in conftest.py (db_pool, clean_db, sample_game_state, event_bus)
 - [x] 13. Write state manager tests (test_manager.py) — RED
 - [x] 14. Implement StateManager (state/manager.py) — GREEN
-- [ ] 15. Write event bus tests (test_bus.py) — RED
+- [x] 15. Write event bus tests (test_bus.py) — RED
 - [ ] 16. Implement EventBus (events/bus.py) + EventPayloadRegistry (events/schemas.py) — GREEN
 - [ ] 17. Write event persistence tests (test_persistence.py) — RED
 - [ ] 18. Implement event persistence (events/persistence.py) — GREEN
