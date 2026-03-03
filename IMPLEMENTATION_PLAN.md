@@ -36,7 +36,7 @@
 
 ### High Priority — Phase 2: State Manager + Event Bus
 
-- [ ] 12. Write test fixtures in conftest.py (db_pool, clean_db, sample_game_state, event_bus)
+- [x] 12. Write test fixtures in conftest.py (db_pool, clean_db, sample_game_state, event_bus)
 - [ ] 13. Write state manager tests (test_manager.py) — RED
 - [ ] 14. Implement StateManager (state/manager.py) — GREEN
 - [ ] 15. Write event bus tests (test_bus.py) — RED
