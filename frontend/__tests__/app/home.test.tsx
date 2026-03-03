@@ -119,4 +119,41 @@ describe("HomePage", () => {
     expect(window.confirm).toHaveBeenCalled();
     expect(mockDeleteSession).toHaveBeenCalledWith("sess-001");
   });
+
+  it("does not delete when confirmation cancelled", async () => {
+    mockListSessions.mockResolvedValue({
+      sessions: [
+        { session_id: "sess-001", status: "active", character_name: "Aldric", created_at: "2024-01-01T00:00:00Z", updated_at: "2024-01-01T00:00:00Z" },
+      ],
+    });
+    window.confirm = jest.fn(() => false);
+
+    render(<HomePage />);
+    await waitFor(() => {
+      expect(screen.getByText("Aldric")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByLabelText("Delete session"));
+    expect(mockDeleteSession).not.toHaveBeenCalled();
+  });
+
+  it("shows error when delete fails", async () => {
+    mockListSessions.mockResolvedValue({
+      sessions: [
+        { session_id: "sess-001", status: "active", character_name: "Aldric", created_at: "2024-01-01T00:00:00Z", updated_at: "2024-01-01T00:00:00Z" },
+      ],
+    });
+    mockDeleteSession.mockRejectedValue(new Error("Delete failed"));
+    window.confirm = jest.fn(() => true);
+
+    render(<HomePage />);
+    await waitFor(() => {
+      expect(screen.getByText("Aldric")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByLabelText("Delete session"));
+    await waitFor(() => {
+      expect(screen.getByText(/Delete failed/)).toBeInTheDocument();
+    });
+  });
 });

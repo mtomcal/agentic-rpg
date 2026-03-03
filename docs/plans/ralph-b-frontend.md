@@ -219,9 +219,9 @@ A single-page app where the user can create a game session and play through it v
 - [ ] Story panel shows outline info
 
 #### Phase 7 Wrap-up
-- [ ] All checklist items above completed or intentionally skipped
-- [ ] `npm run build` succeeds with no errors
-- [ ] `docker compose build frontend` succeeds
+- [x] All checklist items above completed or intentionally skipped
+- [x] `npm run build` succeeds with no errors
+- [x] `docker compose build frontend` succeeds
 - [ ] Commit: `git add -A && git commit -m "phase 7: Next.js chat UI"`
 
 ---

@@ -83,7 +83,7 @@
 - [x] 17. WebSocket ↔ Store Integration
 - [x] 18. Docker Setup — Dockerfile + .dockerignore
 - [x] 19. Docker Compose — frontend service
-- [ ] 20. Final build + coverage check
+- [x] 20. Final build + coverage check
 
 ## Discoveries
 
