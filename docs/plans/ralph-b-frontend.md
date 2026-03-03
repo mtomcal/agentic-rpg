@@ -27,8 +27,8 @@ A single-page app where the user can create a game session and play through it v
 - [x] Verify `npm run build` succeeds
 
 #### Docker Setup
-- [ ] Create `frontend/Dockerfile` (Node 20 alpine, npm install, npm run build, npm start)
-- [ ] `.dockerignore` with node_modules, .next, .git
+- [x] Create `frontend/Dockerfile` (Node 20 alpine, npm install, npm run build, npm start)
+- [x] `.dockerignore` with node_modules, .next, .git
 - [ ] Add `frontend` service to `docker-compose.yml`:
   - Build from `frontend/`
   - Port 3000:3000
