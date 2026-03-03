@@ -100,14 +100,14 @@ A single-page app where the user can create a game session and play through it v
 - [x] Action: `clearMessages()`
 
 #### Home Page (`app/page.tsx`)
-- [ ] Fetch sessions on mount via `listSessions()`
-- [ ] Display session cards: character name, genre/setting, last played date, status
-- [ ] "New Game" button → navigates to /new
-- [ ] Click session card → navigates to /play/[sessionId]
-- [ ] Empty state: "No sessions yet. Start a new game!"
-- [ ] Loading state while fetching
-- [ ] Error state if API unreachable
-- [ ] Delete button on each session card (with confirmation)
+- [x] Fetch sessions on mount via `listSessions()`
+- [x] Display session cards: character name, genre/setting, last played date, status
+- [x] "New Game" button → navigates to /new
+- [x] Click session card → navigates to /play/[sessionId]
+- [x] Empty state: "No sessions yet. Start a new game!"
+- [x] Loading state while fetching
+- [x] Error state if API unreachable
+- [x] Delete button on each session card (with confirmation)
 
 #### New Game Page (`app/new/page.tsx`)
 - [ ] Form fields: genre/setting (text input), character name (text input), profession (text input), background (textarea)

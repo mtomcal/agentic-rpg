@@ -77,7 +77,7 @@
 - [x] 11. LocationPanel Component
 - [x] 12. StoryPanel Component
 - [x] 13. Sidebar Component
-- [ ] 14. Home Page — app/page.tsx
+- [x] 14. Home Page — app/page.tsx
 - [ ] 15. New Game Page — app/new/page.tsx
 - [ ] 16. Play Page — app/play/[sessionId]/page.tsx
 - [ ] 17. WebSocket ↔ Store Integration
