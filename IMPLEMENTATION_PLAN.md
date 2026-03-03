@@ -26,7 +26,7 @@
 - [x] 2. Create full directory structure (all `__init__.py`, empty modules per plan)
 - [x] 3. Write `backend/src/agentic_rpg/config.py` (Pydantic Settings)
 - [x] 4. Write `backend/src/agentic_rpg/db.py` (asyncpg pool create/close)
-- [ ] 5. Write `backend/src/agentic_rpg/main.py` (FastAPI app, lifespan, health endpoint, CORS)
+- [x] 5. Write `backend/src/agentic_rpg/main.py` (FastAPI app, lifespan, health endpoint, CORS)
 - [ ] 6. Write `docker-compose.yml` (postgres service, backend service, network, volume)
 - [ ] 7. Write `backend/Dockerfile` (Python 3.12 slim, uv, uvicorn CMD)
 - [ ] 8. Write all Pydantic models: character, inventory, world, story, game_state, events, api
