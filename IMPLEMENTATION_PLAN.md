@@ -70,7 +70,7 @@
 
 ### Lower Priority — Phase 6: FastAPI Wiring (HTTP + WebSocket)
 
-- [ ] 34. Write API test fixtures (app_client, ws_client, seeded_session)
+- [x] 34. Write API test fixtures (app_client, ws_client, seeded_session)
 - [ ] 35. Write session endpoint tests — RED, then implement (api/handlers.py, api/routes.py) — GREEN
 - [ ] 36. Write game state endpoint tests — RED, then implement — GREEN
 - [ ] 37. Write WebSocket tests — RED, then implement (api/websocket.py) — GREEN
