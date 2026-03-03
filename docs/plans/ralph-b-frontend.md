@@ -85,19 +85,19 @@ A single-page app where the user can create a game session and play through it v
 - [x] `getStatus()` — returns "connecting" | "connected" | "disconnected"
 
 #### State Management (`lib/store.ts`)
-- [ ] Choose approach: React Context + useReducer OR zustand (either is fine)
-- [ ] State shape: `{ gameState: GameState | null, messages: ChatMessage[], connectionStatus, currentSessionId, isAgentThinking }`
-- [ ] `ChatMessage` type: `{ id: string, role: "player" | "agent" | "system", content: string, timestamp: string, isStreaming: boolean }`
-- [ ] Action: `setGameState(state: GameState)`
-- [ ] Action: `addPlayerMessage(text: string)`
-- [ ] Action: `startAgentMessage()` — creates new agent message with isStreaming: true
-- [ ] Action: `appendAgentChunk(text: string)` — appends to current streaming message
-- [ ] Action: `finalizeAgentMessage()` — sets isStreaming: false
-- [ ] Action: `updateFromStateEvent(event)` — apply state_update to gameState
-- [ ] Action: `setConnectionStatus(status)`
-- [ ] Action: `setCurrentSessionId(id)`
-- [ ] Action: `setAgentThinking(thinking: boolean)`
-- [ ] Action: `clearMessages()`
+- [x] Choose approach: React Context + useReducer OR zustand (either is fine)
+- [x] State shape: `{ gameState: GameState | null, messages: ChatMessage[], connectionStatus, currentSessionId, isAgentThinking }`
+- [x] `ChatMessage` type: `{ id: string, role: "player" | "agent" | "system", content: string, timestamp: string, isStreaming: boolean }`
+- [x] Action: `setGameState(state: GameState)`
+- [x] Action: `addPlayerMessage(text: string)`
+- [x] Action: `startAgentMessage()` — creates new agent message with isStreaming: true
+- [x] Action: `appendAgentChunk(text: string)` — appends to current streaming message
+- [x] Action: `finalizeAgentMessage()` — sets isStreaming: false
+- [x] Action: `updateFromStateEvent(event)` — apply state_update to gameState
+- [x] Action: `setConnectionStatus(status)`
+- [x] Action: `setCurrentSessionId(id)`
+- [x] Action: `setAgentThinking(thinking: boolean)`
+- [x] Action: `clearMessages()`
 
 #### Home Page (`app/page.tsx`)
 - [ ] Fetch sessions on mount via `listSessions()`
