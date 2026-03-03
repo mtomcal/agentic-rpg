@@ -51,7 +51,7 @@
 - [x] 21. Write registry tests + implement ToolRegistry (tools/registry.py)
 - [x] 22. Write character tool tests — RED, then implement (tools/character.py) — GREEN
 - [x] 23. Write inventory tool tests — RED, then implement (tools/inventory.py) — GREEN
-- [ ] 24. Write world tool tests — RED, then implement (tools/world.py) — GREEN
+- [x] 24. Write world tool tests — RED, then implement (tools/world.py) — GREEN
 - [ ] 25. Write narrative tool tests — RED, then implement (tools/narrative.py) — GREEN
 - [ ] 26. Run full test suite — all Phase 1+2+3 tests green
 
