@@ -29,14 +29,14 @@ A single-page app where the user can create a game session and play through it v
 #### Docker Setup
 - [x] Create `frontend/Dockerfile` (Node 20 alpine, npm install, npm run build, npm start)
 - [x] `.dockerignore` with node_modules, .next, .git
-- [ ] Add `frontend` service to `docker-compose.yml`:
+- [x] Add `frontend` service to `docker-compose.yml`:
   - Build from `frontend/`
   - Port 3000:3000
   - depends_on: backend
   - Environment: `NEXT_PUBLIC_API_URL=http://localhost:8080`
   - Environment: `NEXT_PUBLIC_WS_URL=ws://localhost:8080`
-- [ ] `docker compose build frontend` succeeds
-- [ ] `docker compose up frontend` starts and serves on port 3000
+- [x] `docker compose build frontend` succeeds
+- [x] `docker compose up frontend` starts and serves on port 3000
 
 #### TypeScript Types (`types/`)
 - [x] `types/game.ts`: `Character` interface — id, name, profession, background, stats, status_effects, level, experience, location_id

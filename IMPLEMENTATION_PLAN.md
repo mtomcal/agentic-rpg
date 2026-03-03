@@ -82,7 +82,7 @@
 - [x] 16. Play Page — app/play/[sessionId]/page.tsx
 - [x] 17. WebSocket ↔ Store Integration
 - [x] 18. Docker Setup — Dockerfile + .dockerignore
-- [ ] 19. Docker Compose — frontend service
+- [x] 19. Docker Compose — frontend service
 - [ ] 20. Final build + coverage check
 
 ## Discoveries
