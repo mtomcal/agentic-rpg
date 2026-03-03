@@ -168,11 +168,11 @@ A single-page app where the user can create a game session and play through it v
 - [x] Handles missing location data gracefully
 
 #### StoryPanel Component (`components/StoryPanel.tsx`)
-- [ ] Story premise (expandable/collapsible, default collapsed)
-- [ ] Current beat summary (always visible)
-- [ ] Progress: "Chapter X of Y" or progress bar
-- [ ] Beat status indicator: active (pulsing dot), resolved (checkmark), skipped (dash)
-- [ ] Beat list: shows all beats with their status (scrollable if many)
+- [x] Story premise (expandable/collapsible, default collapsed)
+- [x] Current beat summary (always visible)
+- [x] Progress: "Chapter X of Y" or progress bar
+- [x] Beat status indicator: active (pulsing dot), resolved (checkmark), skipped (dash)
+- [x] Beat list: shows all beats with their status (scrollable if many)
 
 #### Sidebar Component (`components/Sidebar.tsx`)
 - [ ] Tab bar: Character | Inventory | Location | Story
