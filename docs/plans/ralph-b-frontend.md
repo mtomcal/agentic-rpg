@@ -20,11 +20,11 @@ A single-page app where the user can create a game session and play through it v
 ### Checklist
 
 #### Project Setup
-- [ ] Create `frontend/` directory with Next.js App Router
-- [ ] TypeScript enabled
-- [ ] Tailwind CSS configured
-- [ ] Verify `npm run dev` starts on port 3000
-- [ ] Verify `npm run build` succeeds
+- [x] Create `frontend/` directory with Next.js App Router
+- [x] TypeScript enabled
+- [x] Tailwind CSS configured
+- [x] Verify `npm run dev` starts on port 3000
+- [x] Verify `npm run build` succeeds
 
 #### Docker Setup
 - [ ] Create `frontend/Dockerfile` (Node 20 alpine, npm install, npm run build, npm start)
