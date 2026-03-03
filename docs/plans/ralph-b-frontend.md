@@ -154,10 +154,10 @@ A single-page app where the user can create a game session and play through it v
 - [x] Handles missing/null game state gracefully (loading placeholder)
 
 #### InventoryPanel Component (`components/InventoryPanel.tsx`)
-- [ ] Item list: name, type (colored badge), quantity
-- [ ] Equipment section: slot name → equipped item name (or "Empty")
-- [ ] Empty inventory message: "Your inventory is empty"
-- [ ] Item type color coding: weapon=red, armor=blue, consumable=green, key=yellow, misc=gray
+- [x] Item list: name, type (colored badge), quantity
+- [x] Equipment section: slot name → equipped item name (or "Empty")
+- [x] Empty inventory message: "Your inventory is empty"
+- [x] Item type color coding: weapon=red, armor=blue, consumable=green, key=yellow, misc=gray
 
 #### LocationPanel Component (`components/LocationPanel.tsx`)
 - [ ] Current location name (header)

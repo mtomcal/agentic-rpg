@@ -73,7 +73,7 @@
 - [x] 7. Layout & Styling — app/layout.tsx + dark theme
 - [x] 8. ChatPanel Component
 - [x] 9. CharacterPanel Component
-- [ ] 10. InventoryPanel Component
+- [x] 10. InventoryPanel Component
 - [ ] 11. LocationPanel Component
 - [ ] 12. StoryPanel Component
 - [ ] 13. Sidebar Component
