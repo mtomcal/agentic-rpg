@@ -52,16 +52,16 @@ A single-page app where the user can create a game session and play through it v
 - [x] `types/game.ts`: `Conversation` interface — history, window_size, summary
 - [x] `types/game.ts`: `Session` interface — session_id, player_id, created_at, updated_at, schema_version, status
 - [x] `types/game.ts`: `GameState` interface — session, character, inventory, world, story, conversation, recent_events
-- [ ] `types/api.ts`: `SessionCreateRequest` interface — genre, character: { name, profession, background }
-- [ ] `types/api.ts`: `SessionCreateResponse` interface — session_id, game_state
-- [ ] `types/api.ts`: `SessionSummary` interface — session_id, status, character_name, created_at, updated_at
-- [ ] `types/api.ts`: `SessionListResponse` interface — sessions: SessionSummary[]
-- [ ] `types/api.ts`: `WSMessage` interface — type, data, timestamp
-- [ ] `types/api.ts`: `PlayerActionMessage` — type: "player_action", data: { text }
-- [ ] `types/api.ts`: `AgentResponseMessage` — type: "agent_response", data: { text, is_complete }
-- [ ] `types/api.ts`: `StateUpdateMessage` — type: "state_update", data: { event_type, changes }
-- [ ] `types/api.ts`: `ConnectedMessage` — type: "connected", data: { session_id, game_state }
-- [ ] `types/api.ts`: `ErrorMessage` — type: "error", data: { code, message }
+- [x] `types/api.ts`: `SessionCreateRequest` interface — genre, character: { name, profession, background }
+- [x] `types/api.ts`: `SessionCreateResponse` interface — session_id, game_state
+- [x] `types/api.ts`: `SessionSummary` interface — session_id, status, character_name, created_at, updated_at
+- [x] `types/api.ts`: `SessionListResponse` interface — sessions: SessionSummary[]
+- [x] `types/api.ts`: `WSMessage` interface — type, data, timestamp
+- [x] `types/api.ts`: `PlayerActionMessage` — type: "player_action", data: { text }
+- [x] `types/api.ts`: `AgentResponseMessage` — type: "agent_response", data: { text, is_complete }
+- [x] `types/api.ts`: `StateUpdateMessage` — type: "state_update", data: { event_type, changes }
+- [x] `types/api.ts`: `ConnectedMessage` — type: "connected", data: { session_id, game_state }
+- [x] `types/api.ts`: `ErrorMessage` — type: "error", data: { code, message }
 
 #### API Client (`lib/api.ts`)
 - [ ] `getApiUrl()` helper — reads NEXT_PUBLIC_API_URL, defaults to http://localhost:8080
