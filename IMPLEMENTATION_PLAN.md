@@ -71,7 +71,7 @@
 ### Lower Priority — Phase 6: FastAPI Wiring (HTTP + WebSocket)
 
 - [x] 34. Write API test fixtures (app_client, ws_client, seeded_session)
-- [ ] 35. Write session endpoint tests — RED, then implement (api/handlers.py, api/routes.py) — GREEN
+- [x] 35. Write session endpoint tests — RED, then implement (api/handlers.py, api/routes.py) — GREEN
 - [ ] 36. Write game state endpoint tests — RED, then implement — GREEN
 - [ ] 37. Write WebSocket tests — RED, then implement (api/websocket.py) — GREEN
 - [ ] 38. Wire everything in main.py (lifespan, routes, middleware, dependencies)
@@ -89,6 +89,7 @@ Add rows here when you find things the plan missed or got wrong:
 | 3 | Session model `datetime.utcnow()` produces naive datetimes; manager and DB produce aware datetimes. Fixed by using `datetime.now(UTC)` everywhere. | State manager, any datetime comparisons |
 | 4 | LangChain BaseTool._run() is sync but EventBus.publish() is async. Added `EventBus.publish_sync()` which drives subscriber coroutines inline via `coro.send(None)`. Tools use this for event emission. | All tool event emission |
 | 5 | BeatStatus enum uses `planned` not `pending` — conftest fixture had wrong value. | Tool test fixtures |
+| 6 | httpx ASGITransport does not trigger FastAPI lifespan events. Test fixtures must set `app.state.db_pool` directly in addition to patching `create_pool`. | All API tests using app_client/seeded_app_client |
 
 ## Per-Item Process
 

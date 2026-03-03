@@ -46,10 +46,13 @@ async def event_persistence(clean_db):
 async def app_client(clean_db):
     """Async HTTP client backed by the FastAPI app with a real test DB pool.
 
-    Patches create_pool/close_pool so the app lifespan uses the test pool.
+    Patches create_pool/close_pool so the app lifespan uses the test pool,
+    and also sets app.state.db_pool directly since ASGITransport does not
+    trigger lifespan events.
     """
     with patch("agentic_rpg.main.create_pool", return_value=clean_db), \
          patch("agentic_rpg.main.close_pool", return_value=None):
+        app.state.db_pool = clean_db
         async with AsyncClient(
             transport=ASGITransport(app=app),
             base_url="http://test",
@@ -71,6 +74,7 @@ async def seeded_app_client(seeded_session):
     pool = seeded_session["pool"]
     with patch("agentic_rpg.main.create_pool", return_value=pool), \
          patch("agentic_rpg.main.close_pool", return_value=None):
+        app.state.db_pool = pool
         async with AsyncClient(
             transport=ASGITransport(app=app),
             base_url="http://test",

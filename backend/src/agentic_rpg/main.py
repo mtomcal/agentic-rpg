@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from agentic_rpg.api.routes import register_routes
 from agentic_rpg.db import close_pool, create_pool
 
 
@@ -17,6 +18,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Agentic RPG", version="0.1.0", lifespan=lifespan)
+register_routes(app)
 
 app.add_middleware(
     CORSMiddleware,
