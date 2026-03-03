@@ -64,9 +64,9 @@
 
 ### Medium Priority — Phase 5: Story Engine
 
-- [ ] 31. Write story engine tests — RED
-- [ ] 32. Implement story engine (agent/story_engine.py) — GREEN
-- [ ] 33. Run full test suite — all Phase 1-5 tests green
+- [x] 31. Write story engine tests — RED
+- [x] 32. Implement story engine (agent/story_engine.py) — GREEN
+- [x] 33. Run full test suite — all Phase 1-5 tests green
 
 ### Lower Priority — Phase 6: FastAPI Wiring (HTTP + WebSocket)
 
