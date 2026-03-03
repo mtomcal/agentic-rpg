@@ -144,7 +144,7 @@ def tool_game_state() -> GameState:
                         key_elements=["guardian", "puzzle"],
                         player_objectives=["Solve the puzzle"],
                         flexibility=BeatFlexibility.flexible,
-                        status=BeatStatus.pending,
+                        status=BeatStatus.planned,
                     ),
                 ],
             ),

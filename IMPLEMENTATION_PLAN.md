@@ -49,7 +49,7 @@
 
 - [x] 20. Write tool test fixtures (tool_game_state, tool_event_bus, tool_registry)
 - [x] 21. Write registry tests + implement ToolRegistry (tools/registry.py)
-- [ ] 22. Write character tool tests — RED, then implement (tools/character.py) — GREEN
+- [x] 22. Write character tool tests — RED, then implement (tools/character.py) — GREEN
 - [ ] 23. Write inventory tool tests — RED, then implement (tools/inventory.py) — GREEN
 - [ ] 24. Write world tool tests — RED, then implement (tools/world.py) — GREEN
 - [ ] 25. Write narrative tool tests — RED, then implement (tools/narrative.py) — GREEN
@@ -87,6 +87,8 @@ Add rows here when you find things the plan missed or got wrong:
 | 1 | Sandbox has no outbound network — `uv sync` and `pip install` fail. pyproject.toml is correct but deps can't be installed in sandbox. Need network or pre-built venv. | All items needing `uv run pytest` |
 | 2 | pytest-asyncio needs `asyncio_default_test_loop_scope = "session"` to match session-scoped pool fixture, otherwise asyncpg gets "another operation is in progress" errors | All DB tests |
 | 3 | Session model `datetime.utcnow()` produces naive datetimes; manager and DB produce aware datetimes. Fixed by using `datetime.now(UTC)` everywhere. | State manager, any datetime comparisons |
+| 4 | LangChain BaseTool._run() is sync but EventBus.publish() is async. Used `asyncio.get_running_loop().create_task()` when in async context, `asyncio.run()` fallback for sync. Tests need `await asyncio.sleep(0)` after invoke to let tasks complete. | All tool tests with event assertions |
+| 5 | BeatStatus enum uses `planned` not `pending` — conftest fixture had wrong value. | Tool test fixtures |
 
 ## Per-Item Process
 
