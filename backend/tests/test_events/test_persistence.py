@@ -310,3 +310,38 @@ class TestDeleteEventsForSession:
         """Should return 0 when no events exist for the session."""
         deleted = await persistence.delete_events_for_session(uuid4())
         assert deleted == 0
+
+
+# ===========================================================================
+# _row_to_event (internal helper)
+# ===========================================================================
+
+class TestRowToEvent:
+    """EventPersistence._row_to_event handles both dict and string payloads."""
+
+    def test_handles_string_payload(self):
+        """When payload is a JSON string, it should be parsed to a dict."""
+        import json
+        from unittest.mock import MagicMock
+        from uuid import uuid4 as _uuid4
+        from datetime import datetime, UTC
+
+        mock_row = MagicMock()
+        eid = _uuid4()
+        sid = _uuid4()
+        now = datetime.now(UTC)
+        mock_row.__getitem__ = lambda self, key: {
+            "id": eid,
+            "type": "character.stat_changed",
+            "payload": json.dumps({"stat_name": "health", "old_value": 100, "new_value": 80}),
+            "source": "test",
+            "session_id": sid,
+            "created_at": now,
+        }[key]
+
+        result = EventPersistence._row_to_event(mock_row)
+        assert result.event_id == eid
+        assert result.event_type == "character.stat_changed"
+        assert result.payload["stat_name"] == "health"
+        assert result.payload["old_value"] == 100
+        assert result.session_id == sid
