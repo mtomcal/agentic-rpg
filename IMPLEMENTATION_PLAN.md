@@ -23,7 +23,7 @@
 ### High Priority — Phase 1: Scaffold + Docker + Models
 
 - [x] 1. Create `backend/pyproject.toml` with uv, all dependencies, pytest config, coverage config
-- [ ] 2. Create full directory structure (all `__init__.py`, empty modules per plan)
+- [x] 2. Create full directory structure (all `__init__.py`, empty modules per plan)
 - [ ] 3. Write `backend/src/agentic_rpg/config.py` (Pydantic Settings)
 - [ ] 4. Write `backend/src/agentic_rpg/db.py` (asyncpg pool create/close)
 - [ ] 5. Write `backend/src/agentic_rpg/main.py` (FastAPI app, lifespan, health endpoint, CORS)
