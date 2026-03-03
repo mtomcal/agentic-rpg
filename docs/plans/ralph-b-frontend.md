@@ -39,19 +39,19 @@ A single-page app where the user can create a game session and play through it v
 - [ ] `docker compose up frontend` starts and serves on port 3000
 
 #### TypeScript Types (`types/`)
-- [ ] `types/game.ts`: `Character` interface — id, name, profession, background, stats, status_effects, level, experience, location_id
-- [ ] `types/game.ts`: `StatusEffect` interface — name, duration, description
-- [ ] `types/game.ts`: `Item` interface — id, name, description, item_type, quantity, properties
-- [ ] `types/game.ts`: `Inventory` interface — items, equipment, capacity
-- [ ] `types/game.ts`: `Location` interface — id, name, description, connections, npcs_present, items_present, visited
-- [ ] `types/game.ts`: `World` interface — locations, current_location_id, discovered_locations, world_flags
-- [ ] `types/game.ts`: `StoryBeat` interface — summary, location, trigger_conditions, key_elements, player_objectives, possible_outcomes, flexibility, status
-- [ ] `types/game.ts`: `StoryOutline` interface — premise, setting, beats
-- [ ] `types/game.ts`: `StoryState` interface — outline, active_beat_index, summary, adaptation_history
-- [ ] `types/game.ts`: `Message` interface — role, content, timestamp, metadata
-- [ ] `types/game.ts`: `Conversation` interface — history, window_size, summary
-- [ ] `types/game.ts`: `Session` interface — session_id, player_id, created_at, updated_at, schema_version, status
-- [ ] `types/game.ts`: `GameState` interface — session, character, inventory, world, story, conversation, recent_events
+- [x] `types/game.ts`: `Character` interface — id, name, profession, background, stats, status_effects, level, experience, location_id
+- [x] `types/game.ts`: `StatusEffect` interface — name, duration, description
+- [x] `types/game.ts`: `Item` interface — id, name, description, item_type, quantity, properties
+- [x] `types/game.ts`: `Inventory` interface — items, equipment, capacity
+- [x] `types/game.ts`: `Location` interface — id, name, description, connections, npcs_present, items_present, visited
+- [x] `types/game.ts`: `World` interface — locations, current_location_id, discovered_locations, world_flags
+- [x] `types/game.ts`: `StoryBeat` interface — summary, location, trigger_conditions, key_elements, player_objectives, possible_outcomes, flexibility, status
+- [x] `types/game.ts`: `StoryOutline` interface — premise, setting, beats
+- [x] `types/game.ts`: `StoryState` interface — outline, active_beat_index, summary, adaptation_history
+- [x] `types/game.ts`: `Message` interface — role, content, timestamp, metadata
+- [x] `types/game.ts`: `Conversation` interface — history, window_size, summary
+- [x] `types/game.ts`: `Session` interface — session_id, player_id, created_at, updated_at, schema_version, status
+- [x] `types/game.ts`: `GameState` interface — session, character, inventory, world, story, conversation, recent_events
 - [ ] `types/api.ts`: `SessionCreateRequest` interface — genre, character: { name, profession, background }
 - [ ] `types/api.ts`: `SessionCreateResponse` interface — session_id, game_state
 - [ ] `types/api.ts`: `SessionSummary` interface — session_id, status, character_name, created_at, updated_at

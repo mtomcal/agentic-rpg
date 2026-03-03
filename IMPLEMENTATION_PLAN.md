@@ -65,7 +65,7 @@
 ## Progress Checklist
 
 - [x] 1. Project Setup — scaffold Next.js with TS + Tailwind
-- [ ] 2. TypeScript Types — types/game.ts
+- [x] 2. TypeScript Types — types/game.ts
 - [ ] 3. TypeScript Types — types/api.ts
 - [ ] 4. API Client — lib/api.ts
 - [ ] 5. WebSocket Client — lib/websocket.ts
