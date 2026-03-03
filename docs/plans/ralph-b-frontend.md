@@ -119,15 +119,15 @@ A single-page app where the user can create a game session and play through it v
 - [x] Back button to home
 
 #### Play Page (`app/play/[sessionId]/page.tsx`)
-- [ ] Layout: sidebar (right side, ~320px) + chat area (remaining width)
-- [ ] On mount: connect WebSocket to session
-- [ ] On unmount: disconnect WebSocket
-- [ ] On "connected" message: initialize gameState in store
-- [ ] On "agent_response" message: stream into chat
-- [ ] On "state_update" message: update gameState in store
-- [ ] On "error" message: display error in chat
-- [ ] Connection status indicator (green dot = connected, yellow = connecting, red = disconnected)
-- [ ] Back button to home
+- [x] Layout: sidebar (right side, ~320px) + chat area (remaining width)
+- [x] On mount: connect WebSocket to session
+- [x] On unmount: disconnect WebSocket
+- [x] On "connected" message: initialize gameState in store
+- [x] On "agent_response" message: stream into chat
+- [x] On "state_update" message: update gameState in store
+- [x] On "error" message: display error in chat
+- [x] Connection status indicator (green dot = connected, yellow = connecting, red = disconnected)
+- [x] Back button to home
 
 #### ChatPanel Component (`components/ChatPanel.tsx`)
 - [x] Scrollable message list (flex-col, overflow-y-auto)

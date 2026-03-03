@@ -79,7 +79,7 @@
 - [x] 13. Sidebar Component
 - [x] 14. Home Page — app/page.tsx
 - [x] 15. New Game Page — app/new/page.tsx
-- [ ] 16. Play Page — app/play/[sessionId]/page.tsx
+- [x] 16. Play Page — app/play/[sessionId]/page.tsx
 - [ ] 17. WebSocket ↔ Store Integration
 - [ ] 18. Docker Setup — Dockerfile + .dockerignore
 - [ ] 19. Docker Compose — frontend service
