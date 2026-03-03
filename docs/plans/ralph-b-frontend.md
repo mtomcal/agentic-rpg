@@ -8,6 +8,8 @@ Build a minimal but functional Next.js chat UI for the agentic RPG. This runs in
 
 **Key constraint**: Keep it simple and functional. No design system, no component library, just Tailwind utility classes. The goal is a working chat UI, not a polished product.
 
+**Key constraint**: Check off items in this checklist as you complete them (edit this file). If stuck on something, skip it and move on — velocity matters.
+
 ---
 
 ## Phase 7: Next.js Chat UI
@@ -15,131 +17,226 @@ Build a minimal but functional Next.js chat UI for the agentic RPG. This runs in
 ### Goal
 A single-page app where the user can create a game session and play through it via a chat interface, with a sidebar showing game state.
 
-### Steps
+### Checklist
 
-1. Create `frontend/` directory with Next.js:
-   - `npx create-next-app@latest frontend --typescript --tailwind --app --no-src-dir --no-eslint`
-   - Or manual setup if preferred
+#### Project Setup
+- [ ] Create `frontend/` directory with Next.js App Router
+- [ ] TypeScript enabled
+- [ ] Tailwind CSS configured
+- [ ] Verify `npm run dev` starts on port 3000
+- [ ] Verify `npm run build` succeeds
 
-2. Create `frontend/Dockerfile`:
-   - Node 20 alpine base
-   - Copy project, npm install, npm run build, npm start
-   - Expose port 3000
+#### Docker Setup
+- [ ] Create `frontend/Dockerfile` (Node 20 alpine, npm install, npm run build, npm start)
+- [ ] `.dockerignore` with node_modules, .next, .git
+- [ ] Add `frontend` service to `docker-compose.yml`:
+  - Build from `frontend/`
+  - Port 3000:3000
+  - depends_on: backend
+  - Environment: `NEXT_PUBLIC_API_URL=http://localhost:8080`
+  - Environment: `NEXT_PUBLIC_WS_URL=ws://localhost:8080`
+- [ ] `docker compose build frontend` succeeds
+- [ ] `docker compose up frontend` starts and serves on port 3000
 
-3. Update `docker-compose.yml` (coordinate with Ralph A):
-   - `frontend` service: build from `frontend/`, port 3000, depends_on backend
-   - Environment variable for backend URL (e.g., `NEXT_PUBLIC_API_URL=http://localhost:8080`)
+#### TypeScript Types (`types/`)
+- [ ] `types/game.ts`: `Character` interface — id, name, profession, background, stats, status_effects, level, experience, location_id
+- [ ] `types/game.ts`: `StatusEffect` interface — name, duration, description
+- [ ] `types/game.ts`: `Item` interface — id, name, description, item_type, quantity, properties
+- [ ] `types/game.ts`: `Inventory` interface — items, equipment, capacity
+- [ ] `types/game.ts`: `Location` interface — id, name, description, connections, npcs_present, items_present, visited
+- [ ] `types/game.ts`: `World` interface — locations, current_location_id, discovered_locations, world_flags
+- [ ] `types/game.ts`: `StoryBeat` interface — summary, location, trigger_conditions, key_elements, player_objectives, possible_outcomes, flexibility, status
+- [ ] `types/game.ts`: `StoryOutline` interface — premise, setting, beats
+- [ ] `types/game.ts`: `StoryState` interface — outline, active_beat_index, summary, adaptation_history
+- [ ] `types/game.ts`: `Message` interface — role, content, timestamp, metadata
+- [ ] `types/game.ts`: `Conversation` interface — history, window_size, summary
+- [ ] `types/game.ts`: `Session` interface — session_id, player_id, created_at, updated_at, schema_version, status
+- [ ] `types/game.ts`: `GameState` interface — session, character, inventory, world, story, conversation, recent_events
+- [ ] `types/api.ts`: `SessionCreateRequest` interface — genre, character: { name, profession, background }
+- [ ] `types/api.ts`: `SessionCreateResponse` interface — session_id, game_state
+- [ ] `types/api.ts`: `SessionSummary` interface — session_id, status, character_name, created_at, updated_at
+- [ ] `types/api.ts`: `SessionListResponse` interface — sessions: SessionSummary[]
+- [ ] `types/api.ts`: `WSMessage` interface — type, data, timestamp
+- [ ] `types/api.ts`: `PlayerActionMessage` — type: "player_action", data: { text }
+- [ ] `types/api.ts`: `AgentResponseMessage` — type: "agent_response", data: { text, is_complete }
+- [ ] `types/api.ts`: `StateUpdateMessage` — type: "state_update", data: { event_type, changes }
+- [ ] `types/api.ts`: `ConnectedMessage` — type: "connected", data: { session_id, game_state }
+- [ ] `types/api.ts`: `ErrorMessage` — type: "error", data: { code, message }
 
-4. Create TypeScript types manually (matching backend Pydantic models):
-   - `frontend/types/game.ts`: GameState, Character, Inventory, Item, Location, World, StoryOutline, StoryBeat, Message, Session
-   - `frontend/types/api.ts`: SessionCreateRequest, SessionCreateResponse, SessionSummary, PlayerAction, AgentResponse, StateUpdate, WSMessage
-   - These should match the Pydantic models from `docs/specs/schema-registry.md` and `docs/models/api.py`
+#### API Client (`lib/api.ts`)
+- [ ] `getApiUrl()` helper — reads NEXT_PUBLIC_API_URL, defaults to http://localhost:8080
+- [ ] `createSession(genre: string, character: { name, profession, background })` → POST /api/v1/sessions → SessionCreateResponse
+- [ ] `listSessions()` → GET /api/v1/sessions → SessionListResponse
+- [ ] `getSession(sessionId: string)` → GET /api/v1/sessions/{id} → { game_state: GameState }
+- [ ] `deleteSession(sessionId: string)` → DELETE /api/v1/sessions/{id} → { success: boolean }
+- [ ] Error handling: throw on non-2xx responses with message from body
 
-5. Create API client:
-   - `frontend/lib/api.ts`: HTTP client for REST endpoints
-     - `createSession(genre, character)` → POST /api/v1/sessions
-     - `listSessions()` → GET /api/v1/sessions
-     - `getSession(id)` → GET /api/v1/sessions/{id}
-     - `deleteSession(id)` → DELETE /api/v1/sessions/{id}
+#### WebSocket Client (`lib/websocket.ts`)
+- [ ] `GameWebSocket` class or module
+- [ ] `connect(sessionId: string)` — opens WebSocket to ws://host/api/v1/sessions/{id}/ws
+- [ ] `disconnect()` — closes WebSocket cleanly
+- [ ] `sendAction(text: string)` — sends { type: "player_action", data: { text }, timestamp: ISO }
+- [ ] `onConnected(callback)` — register handler for "connected" messages
+- [ ] `onAgentResponse(callback)` — register handler for "agent_response" messages
+- [ ] `onStateUpdate(callback)` — register handler for "state_update" messages
+- [ ] `onError(callback)` — register handler for "error" messages
+- [ ] `onClose(callback)` — register handler for connection close
+- [ ] Auto-reconnect: on unexpected close, retry after 1s, 2s, 4s (up to 30s)
+- [ ] `getStatus()` — returns "connecting" | "connected" | "disconnected"
 
-6. Create WebSocket client:
-   - `frontend/lib/websocket.ts`: WebSocket connection manager
-     - `connect(sessionId)` — connects to ws://backend/api/v1/sessions/{id}/ws
-     - `disconnect()` — clean close
-     - `sendAction(text)` — sends player_action message
-     - `onMessage(callback)` — registers handler for incoming messages
-     - Auto-reconnect on disconnect (simple retry with backoff)
-     - Parse incoming messages by type (agent_response, state_update, error, connected)
+#### State Management (`lib/store.ts`)
+- [ ] Choose approach: React Context + useReducer OR zustand (either is fine)
+- [ ] State shape: `{ gameState: GameState | null, messages: ChatMessage[], connectionStatus, currentSessionId, isAgentThinking }`
+- [ ] `ChatMessage` type: `{ id: string, role: "player" | "agent" | "system", content: string, timestamp: string, isStreaming: boolean }`
+- [ ] Action: `setGameState(state: GameState)`
+- [ ] Action: `addPlayerMessage(text: string)`
+- [ ] Action: `startAgentMessage()` — creates new agent message with isStreaming: true
+- [ ] Action: `appendAgentChunk(text: string)` — appends to current streaming message
+- [ ] Action: `finalizeAgentMessage()` — sets isStreaming: false
+- [ ] Action: `updateFromStateEvent(event)` — apply state_update to gameState
+- [ ] Action: `setConnectionStatus(status)`
+- [ ] Action: `setCurrentSessionId(id)`
+- [ ] Action: `setAgentThinking(thinking: boolean)`
+- [ ] Action: `clearMessages()`
 
-7. Create state management:
-   - `frontend/lib/store.ts`: Simple React context or zustand store
-     - `gameState`: Current GameState (character, inventory, location, story)
-     - `messages`: Chat message history (player + agent messages)
-     - `connectionStatus`: connected, connecting, disconnected
-     - `currentSession`: Session metadata
-     - Actions: setGameState, addMessage, updateFromStateEvent, setSession
+#### Home Page (`app/page.tsx`)
+- [ ] Fetch sessions on mount via `listSessions()`
+- [ ] Display session cards: character name, genre/setting, last played date, status
+- [ ] "New Game" button → navigates to /new
+- [ ] Click session card → navigates to /play/[sessionId]
+- [ ] Empty state: "No sessions yet. Start a new game!"
+- [ ] Loading state while fetching
+- [ ] Error state if API unreachable
+- [ ] Delete button on each session card (with confirmation)
 
-8. Build pages:
+#### New Game Page (`app/new/page.tsx`)
+- [ ] Form fields: genre/setting (text input), character name (text input), profession (text input), background (textarea)
+- [ ] All fields required
+- [ ] Submit button: "Start Adventure"
+- [ ] On submit: call `createSession()`, on success redirect to /play/[sessionId]
+- [ ] Loading state while creating
+- [ ] Error display if creation fails
+- [ ] Back button to home
 
-   **Home Page** (`app/page.tsx`):
-   - List existing sessions (cards with session name, last played date)
-   - "New Game" button
-   - Click session → navigate to /play/[sessionId]
+#### Play Page (`app/play/[sessionId]/page.tsx`)
+- [ ] Layout: sidebar (right side, ~320px) + chat area (remaining width)
+- [ ] On mount: connect WebSocket to session
+- [ ] On unmount: disconnect WebSocket
+- [ ] On "connected" message: initialize gameState in store
+- [ ] On "agent_response" message: stream into chat
+- [ ] On "state_update" message: update gameState in store
+- [ ] On "error" message: display error in chat
+- [ ] Connection status indicator (green dot = connected, yellow = connecting, red = disconnected)
+- [ ] Back button to home
 
-   **New Game Page** (`app/new/page.tsx`):
-   - Simple form: genre/setting (text input), character name, profession, background
-   - Submit → POST /api/v1/sessions → redirect to /play/[sessionId]
+#### ChatPanel Component (`components/ChatPanel.tsx`)
+- [ ] Scrollable message list (flex-col, overflow-y-auto)
+- [ ] Player messages: right-aligned, blue/indigo background, rounded
+- [ ] Agent messages: left-aligned, gray/dark background, rounded, monospace font
+- [ ] System messages: centered, muted color, italic
+- [ ] Auto-scroll to bottom on new messages
+- [ ] Streaming indicator: blinking cursor or "..." while agent message is streaming
+- [ ] "Agent is thinking..." indicator while waiting for first chunk
+- [ ] Text input at bottom: full width, with send button
+- [ ] Enter key sends message (Shift+Enter for newline)
+- [ ] Input disabled while agent is responding
+- [ ] Input auto-focuses on page load
+- [ ] Empty state: "Start your adventure by typing an action..."
 
-   **Play Page** (`app/play/[sessionId]/page.tsx`):
-   - Main layout: sidebar (left/right) + chat area (center)
-   - Connects WebSocket on mount, disconnects on unmount
+#### CharacterPanel Component (`components/CharacterPanel.tsx`)
+- [ ] Character name (large text)
+- [ ] Profession and level: "Level 1 Knight"
+- [ ] Health bar: colored bar (green > 50%, yellow > 25%, red <= 25%), shows current/max
+- [ ] Energy bar: blue colored bar, shows current/max
+- [ ] Money display
+- [ ] Status effects: list of tags/badges with name and remaining duration
+- [ ] Experience: "XP: 0 / 100" or similar
+- [ ] Handles missing/null game state gracefully (loading placeholder)
 
-9. Build components:
+#### InventoryPanel Component (`components/InventoryPanel.tsx`)
+- [ ] Item list: name, type (colored badge), quantity
+- [ ] Equipment section: slot name → equipped item name (or "Empty")
+- [ ] Empty inventory message: "Your inventory is empty"
+- [ ] Item type color coding: weapon=red, armor=blue, consumable=green, key=yellow, misc=gray
 
-   **ChatPanel** (`components/ChatPanel.tsx`):
-   - Scrollable message list
-   - Each message: player messages right-aligned (blue), agent messages left-aligned (gray)
-   - Agent messages may stream in (append chunks until is_complete: true)
-   - Text input at bottom with send button
-   - Enter to send
-   - Show "Agent is thinking..." indicator while waiting for response
+#### LocationPanel Component (`components/LocationPanel.tsx`)
+- [ ] Current location name (header)
+- [ ] Location description (paragraph)
+- [ ] "Connected locations" list with names
+- [ ] "NPCs here" list (if any)
+- [ ] "Items here" list (if any)
+- [ ] Handles missing location data gracefully
 
-   **CharacterPanel** (`components/CharacterPanel.tsx`):
-   - Character name, profession
-   - Stats display (health bar, energy bar, money)
-   - Active status effects as tags/badges
-   - Level and experience
+#### StoryPanel Component (`components/StoryPanel.tsx`)
+- [ ] Story premise (expandable/collapsible, default collapsed)
+- [ ] Current beat summary (always visible)
+- [ ] Progress: "Chapter X of Y" or progress bar
+- [ ] Beat status indicator: active (pulsing dot), resolved (checkmark), skipped (dash)
+- [ ] Beat list: shows all beats with their status (scrollable if many)
 
-   **InventoryPanel** (`components/InventoryPanel.tsx`):
-   - List of items with name, type, quantity
-   - Equipment slots showing what's equipped
-   - Simple list layout, no drag-and-drop
+#### Sidebar Component (`components/Sidebar.tsx`)
+- [ ] Tab bar: Character | Inventory | Location | Story
+- [ ] Active tab highlighted
+- [ ] Renders the selected panel component
+- [ ] Default tab: Character
+- [ ] Scrollable panel content area
+- [ ] Fixed width, full height
 
-   **LocationPanel** (`components/LocationPanel.tsx`):
-   - Current location name and description
-   - List of connected locations
-   - NPCs present
-   - Items present
+#### Layout & Styling
+- [ ] `app/layout.tsx`: dark theme base styles (bg-gray-900, text-gray-100)
+- [ ] Global font: monospace or system monospace for game feel
+- [ ] Responsive: doesn't break on mobile (sidebar collapses or hides)
+- [ ] Loading spinner component for reuse
+- [ ] Consistent padding and spacing
 
-   **StoryPanel** (`components/StoryPanel.tsx`):
-   - Current story premise (collapsed/expandable)
-   - Active beat summary
-   - Progress indicator (beat X of Y)
+#### WebSocket ↔ Store Integration
+- [ ] "connected" message → `setGameState(data.game_state)`, `setConnectionStatus("connected")`
+- [ ] "agent_response" with is_complete=false → `appendAgentChunk(data.text)`
+- [ ] "agent_response" with is_complete=true → `finalizeAgentMessage()`, `setAgentThinking(false)`
+- [ ] "state_update" → `updateFromStateEvent(data)` (update character/inventory/location/story as appropriate)
+- [ ] "error" → display error message in chat as system message
+- [ ] WebSocket close → `setConnectionStatus("disconnected")`
+- [ ] Player sends action → `addPlayerMessage(text)`, `setAgentThinking(true)`, `startAgentMessage()`, `ws.sendAction(text)`
 
-   **Sidebar** (`components/Sidebar.tsx`):
-   - Tabs or accordion: Character | Inventory | Location | Story
-   - Renders the appropriate panel
+#### Docker Integration
+- [ ] `docker compose build` builds frontend successfully
+- [ ] `docker compose up` starts all 3 services (postgres, backend, frontend)
+- [ ] Frontend accessible at http://localhost:3000
+- [ ] Frontend can reach backend API (CORS configured on backend)
+- [ ] WebSocket connection works through Docker networking
 
-10. Wire up state updates:
-    - When WebSocket receives `state_update` messages, update the game state in the store
-    - When WebSocket receives `connected` message, initialize game state from payload
-    - When WebSocket receives `agent_response` chunks, append to current agent message
-    - When agent response is complete (is_complete: true), finalize the message
+#### End-to-End Verification (manual)
+- [ ] Open http://localhost:3000 — home page loads
+- [ ] Click "New Game" — form appears
+- [ ] Fill form, submit — redirected to play page
+- [ ] Play page: WebSocket connects, "connected" message received, game state populates sidebar
+- [ ] Type an action, press Enter — message appears in chat
+- [ ] Agent response streams in (or error if backend not ready — that's OK)
+- [ ] Sidebar tabs switch correctly
+- [ ] Character panel shows stats
+- [ ] Inventory panel shows items
+- [ ] Location panel shows current location
+- [ ] Story panel shows outline info
 
-11. Basic styling with Tailwind:
-    - Dark theme (gray-900 background, gray-100 text)
-    - Fixed sidebar width, flexible chat area
-    - Mobile-friendly enough to not break (but not a priority)
-    - Monospace font for game text (gives it an RPG feel)
+#### Phase 7 Wrap-up
+- [ ] All checklist items above completed or intentionally skipped
+- [ ] `npm run build` succeeds with no errors
+- [ ] `docker compose build frontend` succeeds
+- [ ] Commit: `git add -A && git commit -m "phase 7: Next.js chat UI"`
 
-### Definition of Done
-- `docker compose up` starts frontend on port 3000
-- Home page loads, shows session list
-- Can create a new game session
-- Play page connects WebSocket, shows chat UI
-- Can type player actions and see agent responses stream in
-- Sidebar shows character stats, inventory, location
-- State updates reflected in sidebar when agent modifies game state
+---
 
-### Notes for Ralph
+## Notes for Ralph
 
 - Reference `docs/specs/frontend.md` for component details
 - Reference `docs/specs/api-layer.md` for all endpoint contracts and WebSocket message formats
 - Reference `docs/specs/schema-registry.md` for all data model shapes
 - The backend may not be fully ready when you start — build against the spec, not the live API
 - Use `NEXT_PUBLIC_API_URL` env var for backend URL (defaults to http://localhost:8080)
-- For WebSocket URL, derive from API URL (replace http with ws)
+- For WebSocket URL, use `NEXT_PUBLIC_WS_URL` or derive from API URL (replace http with ws)
 - Keep components simple — no fancy animations, no component libraries
 - Tailwind utility classes only, no custom CSS files
 - TypeScript strict mode is fine but don't over-type — `any` is acceptable for speed
 - Test manually by running the frontend and checking the UI works
+- Check off items in this checklist as you complete them (edit this file)
+- If stuck on something for more than a few minutes, skip it and move on — velocity matters
