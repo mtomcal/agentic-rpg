@@ -154,9 +154,9 @@ class TestDeleteGameState:
         assert result is None
 
     async def test_delete_nonexistent_session_is_noop(self, manager):
-        """Deleting a session that doesn't exist should not raise."""
-        # Should not raise
-        await manager.delete_game_state(uuid4())
+        """Deleting a session that doesn't exist should not raise and return False."""
+        result = await manager.delete_game_state(uuid4())
+        assert result is False
 
     async def test_delete_returns_true_for_existing(self, manager, sample_game_state):
         """Deleting an existing session should return True."""
