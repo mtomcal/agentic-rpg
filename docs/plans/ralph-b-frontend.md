@@ -130,18 +130,18 @@ A single-page app where the user can create a game session and play through it v
 - [ ] Back button to home
 
 #### ChatPanel Component (`components/ChatPanel.tsx`)
-- [ ] Scrollable message list (flex-col, overflow-y-auto)
-- [ ] Player messages: right-aligned, blue/indigo background, rounded
-- [ ] Agent messages: left-aligned, gray/dark background, rounded, monospace font
-- [ ] System messages: centered, muted color, italic
-- [ ] Auto-scroll to bottom on new messages
-- [ ] Streaming indicator: blinking cursor or "..." while agent message is streaming
-- [ ] "Agent is thinking..." indicator while waiting for first chunk
-- [ ] Text input at bottom: full width, with send button
-- [ ] Enter key sends message (Shift+Enter for newline)
-- [ ] Input disabled while agent is responding
-- [ ] Input auto-focuses on page load
-- [ ] Empty state: "Start your adventure by typing an action..."
+- [x] Scrollable message list (flex-col, overflow-y-auto)
+- [x] Player messages: right-aligned, blue/indigo background, rounded
+- [x] Agent messages: left-aligned, gray/dark background, rounded, monospace font
+- [x] System messages: centered, muted color, italic
+- [x] Auto-scroll to bottom on new messages
+- [x] Streaming indicator: blinking cursor or "..." while agent message is streaming
+- [x] "Agent is thinking..." indicator while waiting for first chunk
+- [x] Text input at bottom: full width, with send button
+- [x] Enter key sends message (Shift+Enter for newline)
+- [x] Input disabled while agent is responding
+- [x] Input auto-focuses on page load
+- [x] Empty state: "Start your adventure by typing an action..."
 
 #### CharacterPanel Component (`components/CharacterPanel.tsx`)
 - [ ] Character name (large text)
