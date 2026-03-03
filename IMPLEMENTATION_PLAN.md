@@ -72,7 +72,7 @@
 - [x] 6. State Management — lib/store.ts
 - [x] 7. Layout & Styling — app/layout.tsx + dark theme
 - [x] 8. ChatPanel Component
-- [ ] 9. CharacterPanel Component
+- [x] 9. CharacterPanel Component
 - [ ] 10. InventoryPanel Component
 - [ ] 11. LocationPanel Component
 - [ ] 12. StoryPanel Component

@@ -144,14 +144,14 @@ A single-page app where the user can create a game session and play through it v
 - [x] Empty state: "Start your adventure by typing an action..."
 
 #### CharacterPanel Component (`components/CharacterPanel.tsx`)
-- [ ] Character name (large text)
-- [ ] Profession and level: "Level 1 Knight"
-- [ ] Health bar: colored bar (green > 50%, yellow > 25%, red <= 25%), shows current/max
-- [ ] Energy bar: blue colored bar, shows current/max
-- [ ] Money display
-- [ ] Status effects: list of tags/badges with name and remaining duration
-- [ ] Experience: "XP: 0 / 100" or similar
-- [ ] Handles missing/null game state gracefully (loading placeholder)
+- [x] Character name (large text)
+- [x] Profession and level: "Level 1 Knight"
+- [x] Health bar: colored bar (green > 50%, yellow > 25%, red <= 25%), shows current/max
+- [x] Energy bar: blue colored bar, shows current/max
+- [x] Money display
+- [x] Status effects: list of tags/badges with name and remaining duration
+- [x] Experience: "XP: 0 / 100" or similar
+- [x] Handles missing/null game state gracefully (loading placeholder)
 
 #### InventoryPanel Component (`components/InventoryPanel.tsx`)
 - [ ] Item list: name, type (colored badge), quantity
