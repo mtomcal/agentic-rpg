@@ -110,13 +110,13 @@ A single-page app where the user can create a game session and play through it v
 - [x] Delete button on each session card (with confirmation)
 
 #### New Game Page (`app/new/page.tsx`)
-- [ ] Form fields: genre/setting (text input), character name (text input), profession (text input), background (textarea)
-- [ ] All fields required
-- [ ] Submit button: "Start Adventure"
-- [ ] On submit: call `createSession()`, on success redirect to /play/[sessionId]
-- [ ] Loading state while creating
-- [ ] Error display if creation fails
-- [ ] Back button to home
+- [x] Form fields: genre/setting (text input), character name (text input), profession (text input), background (textarea)
+- [x] All fields required
+- [x] Submit button: "Start Adventure"
+- [x] On submit: call `createSession()`, on success redirect to /play/[sessionId]
+- [x] Loading state while creating
+- [x] Error display if creation fails
+- [x] Back button to home
 
 #### Play Page (`app/play/[sessionId]/page.tsx`)
 - [ ] Layout: sidebar (right side, ~320px) + chat area (remaining width)
