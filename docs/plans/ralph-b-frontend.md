@@ -190,13 +190,13 @@ A single-page app where the user can create a game session and play through it v
 - [x] Consistent padding and spacing
 
 #### WebSocket ↔ Store Integration
-- [ ] "connected" message → `setGameState(data.game_state)`, `setConnectionStatus("connected")`
-- [ ] "agent_response" with is_complete=false → `appendAgentChunk(data.text)`
-- [ ] "agent_response" with is_complete=true → `finalizeAgentMessage()`, `setAgentThinking(false)`
-- [ ] "state_update" → `updateFromStateEvent(data)` (update character/inventory/location/story as appropriate)
-- [ ] "error" → display error message in chat as system message
-- [ ] WebSocket close → `setConnectionStatus("disconnected")`
-- [ ] Player sends action → `addPlayerMessage(text)`, `setAgentThinking(true)`, `startAgentMessage()`, `ws.sendAction(text)`
+- [x] "connected" message → `setGameState(data.game_state)`, `setConnectionStatus("connected")`
+- [x] "agent_response" with is_complete=false → `appendAgentChunk(data.text)`
+- [x] "agent_response" with is_complete=true → `finalizeAgentMessage()`, `setAgentThinking(false)`
+- [x] "state_update" → `updateFromStateEvent(data)` (update character/inventory/location/story as appropriate)
+- [x] "error" → display error message in chat as system message
+- [x] WebSocket close → `setConnectionStatus("disconnected")`
+- [x] Player sends action → `addPlayerMessage(text)`, `setAgentThinking(true)`, `startAgentMessage()`, `ws.sendAction(text)`
 
 #### Docker Integration
 - [ ] `docker compose build` builds frontend successfully
