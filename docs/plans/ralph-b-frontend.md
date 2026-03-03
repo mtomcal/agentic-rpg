@@ -64,12 +64,12 @@ A single-page app where the user can create a game session and play through it v
 - [x] `types/api.ts`: `ErrorMessage` — type: "error", data: { code, message }
 
 #### API Client (`lib/api.ts`)
-- [ ] `getApiUrl()` helper — reads NEXT_PUBLIC_API_URL, defaults to http://localhost:8080
-- [ ] `createSession(genre: string, character: { name, profession, background })` → POST /api/v1/sessions → SessionCreateResponse
-- [ ] `listSessions()` → GET /api/v1/sessions → SessionListResponse
-- [ ] `getSession(sessionId: string)` → GET /api/v1/sessions/{id} → { game_state: GameState }
-- [ ] `deleteSession(sessionId: string)` → DELETE /api/v1/sessions/{id} → { success: boolean }
-- [ ] Error handling: throw on non-2xx responses with message from body
+- [x] `getApiUrl()` helper — reads NEXT_PUBLIC_API_URL, defaults to http://localhost:8080
+- [x] `createSession(genre: string, character: { name, profession, background })` → POST /api/v1/sessions → SessionCreateResponse
+- [x] `listSessions()` → GET /api/v1/sessions → SessionListResponse
+- [x] `getSession(sessionId: string)` → GET /api/v1/sessions/{id} → { game_state: GameState }
+- [x] `deleteSession(sessionId: string)` → DELETE /api/v1/sessions/{id} → { success: boolean }
+- [x] Error handling: throw on non-2xx responses with message from body
 
 #### WebSocket Client (`lib/websocket.ts`)
 - [ ] `GameWebSocket` class or module
