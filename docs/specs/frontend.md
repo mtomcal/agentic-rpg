@@ -4,6 +4,13 @@
 
 The frontend is a browser-based client that presents the game to the player. It handles character creation, displays narrative text, shows game state (stats, inventory, map), and sends player actions to the server. It connects via HTTP for initial data loading and WebSocket for real-time gameplay.
 
+## Technology
+
+- **Next.js** with TypeScript
+- **Tailwind CSS** for styling
+- **Zustand** for state management
+- **TypeScript types** generated from Pydantic models on the backend (via `pydantic-to-typescript` or `datamodel-code-generator`)
+
 ## Screens
 
 ### Home Screen
@@ -46,6 +53,18 @@ The primary play interface. Split into regions:
 - Minimap or location list (future)
 
 The layout should be responsive but primarily designed for desktop. Mobile is a future consideration.
+
+## Generated Types
+
+TypeScript types are generated from the backend's Pydantic models and live in `frontend/src/generated/`. These types ensure the frontend and backend stay in sync without manual type maintenance.
+
+```
+backend/schemas/**/*.py (Pydantic models)
+    │
+    └──→ [pydantic-to-typescript / datamodel-code-generator] ──→ frontend/src/generated/*.ts
+```
+
+Generated types include all API request/response bodies, game state models, event payloads, and WebSocket message types. The generation runs as part of the build pipeline and CI verifies no drift.
 
 ## State Management
 

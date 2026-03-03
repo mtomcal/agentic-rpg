@@ -8,9 +8,9 @@ Use WebSockets for real-time communication between the frontend and backend duri
 
 - **Bidirectional**: Both client and server can send messages at any time. Needed for pushing state updates and streaming agent responses.
 - **Low overhead**: After the initial handshake, messages are lightweight framed data. No HTTP header overhead per message.
-- **Simple**: The WebSocket API is native in browsers and well-supported in Go. No extra libraries needed on the frontend.
+- **Simple**: The WebSocket API is native in browsers and well-supported in FastAPI/Starlette. No extra libraries needed on the frontend.
 - **Streaming**: Agent responses stream token-by-token. WebSocket is the natural fit for pushing text chunks as they arrive.
-- **Why not SSE**: Server-Sent Events are server→client only. We need client→server for player actions during an active connection. SSE + HTTP POST would work but is more complex than a single WebSocket.
+- **Why not SSE**: Server-Sent Events are server->client only. We need client->server for player actions during an active connection. SSE + HTTP POST would work but is more complex than a single WebSocket.
 - **Why not polling**: Wasteful and high-latency. The game needs sub-second updates for streaming text.
 
 ## Protocol Design
@@ -28,14 +28,14 @@ All messages are JSON:
 }
 ```
 
-### Client → Server
+### Client -> Server
 
 | Type | Purpose |
 |------|---------|
 | `player_action` | Player sends a text command |
 | `pong` | Response to server heartbeat |
 
-### Server → Client
+### Server -> Client
 
 | Type | Purpose |
 |------|---------|
@@ -58,9 +58,28 @@ All messages are JSON:
 
 ## Server-Side Architecture
 
+### FastAPI WebSocket Endpoint
+
+WebSocket connections are handled by FastAPI's WebSocket support (built on Starlette):
+
+```python
+from fastapi import WebSocket, WebSocketDisconnect
+
+@app.websocket("/api/v1/sessions/{session_id}/ws")
+async def websocket_endpoint(websocket: WebSocket, session_id: str):
+    await websocket.accept()
+    hub.register(session_id, websocket)
+    try:
+        while True:
+            data = await websocket.receive_json()
+            await handle_message(session_id, data)
+    except WebSocketDisconnect:
+        hub.unregister(session_id)
+```
+
 ### WebSocket Hub
 
-A central hub manages all active WebSocket connections:
+A central async hub manages all active WebSocket connections:
 
 - **Register**: Add a new connection (keyed by session ID)
 - **Unregister**: Remove a connection
@@ -69,14 +88,41 @@ A central hub manages all active WebSocket connections:
 
 Each session has at most one active WebSocket connection. If a new connection opens for a session that already has one, the old connection is closed.
 
-### Goroutine Model
+```python
+class ConnectionHub:
+    def __init__(self):
+        self._connections: dict[str, WebSocket] = {}
 
-Each WebSocket connection spawns two goroutines:
+    def register(self, session_id: str, websocket: WebSocket):
+        if session_id in self._connections:
+            # Close existing connection
+            asyncio.create_task(self._connections[session_id].close())
+        self._connections[session_id] = websocket
 
-- **Read goroutine**: Reads messages from the client, dispatches to the agent
-- **Write goroutine**: Receives messages from a channel, writes to the client
+    def unregister(self, session_id: str):
+        self._connections.pop(session_id, None)
 
-This separation prevents write blocking from stalling reads and vice versa.
+    async def send(self, session_id: str, message: dict):
+        if ws := self._connections.get(session_id):
+            await ws.send_json(message)
+```
+
+### Async Task Model
+
+Each WebSocket connection uses **asyncio tasks** instead of goroutines:
+
+- **Read path**: The `while True` loop in the endpoint reads messages from the client and dispatches to the agent
+- **Write path**: The hub's `send` method writes messages to the client. Since FastAPI WebSocket operations are async, writes don't block reads.
+- **Heartbeat task**: An `asyncio.create_task` runs the ping/pong loop for each connection
+
+```python
+async def heartbeat(session_id: str, websocket: WebSocket):
+    while True:
+        await asyncio.sleep(30)
+        await websocket.send_json({"type": "ping"})
+```
+
+The asyncio event loop handles concurrency — no thread/goroutine management needed. `asyncio.create_task` spawns concurrent operations within a single connection.
 
 ## Frontend Implementation
 

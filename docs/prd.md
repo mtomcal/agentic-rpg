@@ -2,12 +2,13 @@
 
 ## Vision
 
-A browser-based, single-player role-playing game where narrative, world state, and character interactions are dynamically generated and managed by LLM agents using direct API tool-use. The game is genre-agnostic — players can experience sci-fi, fantasy, space pirate, or any other setting. Multiple players can each run their own independent stories on the same server.
+A browser-based, single-player role-playing game where narrative, world state, and character interactions are dynamically generated and managed by LangChain-powered LLM agents orchestrated with LangGraph. The game is genre-agnostic — players can experience sci-fi, fantasy, space pirate, or any other setting. Multiple players can each run their own independent stories on the same server.
 
 ## Goals
 
 - **Primary**: Build a working agentic RPG with persistent state, dynamic narrative generation, and meaningful player agency
-- **Learning**: Deeply understand custom agent development by building against raw LLM APIs with tool use — no frameworks
+- **Learning**: Deeply understand LangChain and LangGraph by building a real, complex agent system — tools, state graphs, streaming, and observability
+- **Observability**: Integrate LangSmith for full tracing, debugging, and evaluation of agent behavior in production
 - **Infrastructure**: Gain experience with PostgreSQL, Docker Compose, and Kubernetes deployment
 - **Architecture**: Create a modular system where each subsystem is independently specified and testable
 
@@ -18,13 +19,13 @@ A browser-based, single-player role-playing game where narrative, world state, a
 - **Player Agency**: The player should feel in control. The story adapts to their choices, not the other way around.
 - **Narrative Coherence**: A loose story outline provides direction without railroading. The outline adapts when the player diverges.
 - **Genre Agnostic**: The systems themselves know nothing about genre. Setting, tone, and theme come from prompts and configuration.
-- **Single Agent First**: Start with one agent that does everything via tools. Add specialized agents later only when complexity demands it.
+- **Single Agent First**: Start with one LangGraph agent that does everything via tools. Add specialized agents later only when complexity demands it.
 
 ### Technical Principles
 
 - **Spec-Driven Development**: Stack-agnostic system specs define behavior. Technology choices are separate documents.
-- **Direct LLM Integration**: No abstraction frameworks (LangChain, LangGraph). Direct API calls with tool use for transparency and learning.
-- **Shared Schema as Source of Truth**: JSON Schema defines all data contracts. Both server and client types are generated from it.
+- **LangChain/LangGraph Integration**: Use LangChain for tool definitions and LLM interaction, LangGraph for agent workflow orchestration, and LangSmith for observability and tracing.
+- **Pydantic Models as Source of Truth**: Pydantic v2 models define all data contracts. TypeScript types for the frontend are generated from them.
 - **Event-Driven Communication**: Components communicate via an event bus with schema-validated events.
 - **WebSocket Real-Time**: The client receives game updates in real-time over WebSockets.
 
@@ -33,7 +34,6 @@ A browser-based, single-player role-playing game where narrative, world state, a
 - Multiplayer (shared worlds between players)
 - Voice input/output
 - Mobile native clients
-- LLM framework integration (LangChain, LangGraph, etc.)
 
 ## Target User
 
@@ -48,16 +48,19 @@ A single player in a browser who wants a dynamic, AI-driven narrative RPG experi
 └──────────────┬──────────────────┘
                │ HTTP / WebSocket
 ┌──────────────▼──────────────────┐
-│         Go API Server           │
+│     Python / FastAPI Server     │
 │   (HTTP routes, WS hub, auth)   │
 └──────┬───────────────┬──────────┘
        │               │
 ┌──────▼──────┐  ┌─────▼─────────┐
-│   Agent     │  │  PostgreSQL   │
-│   Engine    │  │  (state,      │
-│ (LLM API + │  │   sessions,   │
-│  tool use)  │  │   events)     │
-└──────┬──────┘  └───────────────┘
+│  LangGraph  │  │  PostgreSQL   │
+│   Agent     │  │  (state,      │
+│  Engine     │  │   sessions,   │
+│ (LangChain  │  │   events)     │
+│  tools +    │  └───────────────┘
+│  LangSmith  │
+│  tracing)   │
+└──────┬──────┘
        │
 ┌──────▼──────┐
 │  Event Bus  │

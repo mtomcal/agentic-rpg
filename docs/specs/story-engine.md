@@ -44,14 +44,49 @@ When a new game session starts:
 
 1. The player selects or describes a genre/setting
 2. The player creates a character (name, profession, background)
-3. The agent generates a story outline based on the setting + character:
+3. The agent generates a story outline based on the setting + character using **LangChain structured output** with a Pydantic model:
    - Creates a premise that fits the character's background
    - Generates 5-10 beats forming a narrative arc (setup → rising action → climax → resolution)
    - Assigns locations and trigger conditions to each beat
 4. The outline is stored as part of the game state
 5. The first beat becomes active and the game begins
 
-The outline generation is itself an LLM call with a specific prompt and output schema. The agent does not use tools during outline generation — it produces the outline as structured output.
+The outline generation uses LangChain's structured output to produce a validated Pydantic model directly:
+
+```python
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_anthropic import ChatAnthropic
+
+class StoryBeat(BaseModel):
+    summary: str
+    location: str
+    trigger_conditions: list[str]
+    key_elements: list[str]
+    player_objectives: list[str]
+    possible_outcomes: list[str]
+    flexibility: Literal["fixed", "flexible", "optional"]
+
+class StoryOutline(BaseModel):
+    premise: str
+    setting: str
+    beats: list[StoryBeat]
+
+llm = ChatAnthropic(model="claude-sonnet-4-20250514")
+structured_llm = llm.with_structured_output(StoryOutline)
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a narrative designer for an RPG..."),
+    ("human", "Create a story outline for: {setting}, {character_summary}"),
+])
+
+chain = prompt | structured_llm
+outline: StoryOutline = await chain.ainvoke({
+    "setting": setting,
+    "character_summary": character_summary,
+})
+```
+
+The output is automatically validated against the Pydantic schema — no manual parsing or validation needed.
 
 ## Outline Adaptation
 
@@ -66,7 +101,7 @@ The outline adapts when the player diverges from expectations. Adaptation trigge
 
 1. Identify what changed (which beat, what the player did)
 2. Assess the impact on remaining beats (minor tweak vs. major rewrite)
-3. Call the LLM with the current outline, the change, and a request to adapt
+3. Call the LLM via LangChain structured output with the current outline, the change, and a request to adapt — producing an updated `StoryOutline` Pydantic model
 4. Replace the remaining unresolved beats with the new plan
 5. Log the adaptation in the adaptation history
 6. Continue play with the updated outline
@@ -98,7 +133,7 @@ The agent receives the story outline as part of its context (see [Agent System](
 - The **story summary** (resolved beats) is included to maintain continuity
 - The agent does **not** reveal upcoming beats to the player directly
 
-The agent has narrative tools to:
+The agent has narrative tools (defined as LangChain `@tool` functions) to:
 - Mark a beat as resolved (with the outcome)
 - Request an outline adaptation
 - Advance to the next beat

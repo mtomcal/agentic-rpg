@@ -2,7 +2,7 @@
 
 ## Overview
 
-The API layer is the HTTP and WebSocket server that sits between the frontend client and the game engine. It handles session management, routes player actions to the agent, and pushes real-time updates to the client over WebSockets.
+The API layer is the HTTP and WebSocket server built with **FastAPI** that sits between the frontend client and the game engine. It handles session management, routes player actions to the agent, and pushes real-time updates to the client over WebSockets. FastAPI provides automatic request validation via Pydantic, built-in OpenAPI documentation, and native async support.
 
 ## Transport
 
@@ -29,52 +29,97 @@ Each active game session has one WebSocket connection. The client connects when 
 
 ## HTTP Endpoints
 
+All endpoints are defined as FastAPI route handlers with Pydantic request/response models. FastAPI automatically validates inputs and generates OpenAPI documentation.
+
 ### Session Management
 
 **POST /api/v1/sessions**
 Create a new game session.
-- Request: `{ genre: string, character: { name, profession, background } }`
-- Response: `{ session_id: string, game_state: GameState }`
+- Request: `SessionCreateRequest { genre: str, character: CharacterCreate { name, profession, background } }`
+- Response: `SessionCreateResponse { session_id: str, game_state: GameState }`
 - Side effects: Creates character, generates story outline, initializes world
+
+```python
+@router.post("/sessions", response_model=SessionCreateResponse)
+async def create_session(
+    request: SessionCreateRequest,
+    engine: GameEngine = Depends(get_game_engine),
+    player: Player = Depends(get_current_player),
+) -> SessionCreateResponse:
+    ...
+```
 
 **GET /api/v1/sessions**
 List the player's sessions.
-- Response: `{ sessions: [{ id, character_name, genre, status, updated_at }] }`
+- Response: `SessionListResponse { sessions: list[SessionSummary] }`
 
-**GET /api/v1/sessions/:id**
+**GET /api/v1/sessions/{session_id}**
 Get full game state for a session.
-- Response: `{ game_state: GameState }`
+- Response: `SessionDetailResponse { game_state: GameState }`
 
-**DELETE /api/v1/sessions/:id**
+**DELETE /api/v1/sessions/{session_id}**
 Delete a session.
-- Response: `{ success: boolean }`
+- Response: `DeleteResponse { success: bool }`
 
 ### Game State
 
-**GET /api/v1/sessions/:id/state**
+**GET /api/v1/sessions/{session_id}/state**
 Get current game state summary (lighter than full state).
-- Response: `{ character: CharacterSummary, location: LocationSummary, story_beat: BeatSummary }`
+- Response: `StateSummaryResponse { character: CharacterSummary, location: LocationSummary, story_beat: BeatSummary }`
 
-**GET /api/v1/sessions/:id/inventory**
+**GET /api/v1/sessions/{session_id}/inventory**
 Get current inventory.
-- Response: `{ items: Item[], equipment: Equipment }`
+- Response: `InventoryResponse { items: list[Item], equipment: Equipment }`
 
-**GET /api/v1/sessions/:id/history**
+**GET /api/v1/sessions/{session_id}/history**
 Get conversation history.
-- Query params: `limit`, `offset`
-- Response: `{ messages: Message[], total: int }`
+- Query params: `limit: int`, `offset: int`
+- Response: `HistoryResponse { messages: list[Message], total: int }`
 
 ### Health / Meta
 
 **GET /api/health**
 Health check.
-- Response: `{ status: "ok", version: string }`
+- Response: `HealthResponse { status: str, version: str }`
+
+## Dependency Injection
+
+FastAPI's dependency injection system replaces manual constructor injection. Dependencies are declared as function parameters with `Depends()`:
+
+```python
+from fastapi import Depends
+
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session() as session:
+        yield session
+
+async def get_game_engine(db: AsyncSession = Depends(get_db)) -> GameEngine:
+    return GameEngine(db=db)
+
+async def get_current_player(
+    player_id: str = Header(alias="X-Player-ID"),
+) -> Player:
+    ...
+```
+
+Dependencies are composable — `get_game_engine` depends on `get_db`, and FastAPI resolves the chain automatically.
 
 ## WebSocket Protocol
 
 ### Connection
 
-The client connects to `ws://host/api/v1/sessions/:id/ws`.
+The client connects to `ws://host/api/v1/sessions/{session_id}/ws`.
+
+```python
+@router.websocket("/sessions/{session_id}/ws")
+async def websocket_endpoint(
+    websocket: WebSocket,
+    session_id: str,
+    engine: GameEngine = Depends(get_game_engine),
+):
+    await websocket.accept()
+    ...
+```
 
 On connection:
 1. Server validates the session ID exists and is active
@@ -95,6 +140,22 @@ All WebSocket messages are JSON with a `type` field:
   "data": { ... },
   "timestamp": "ISO 8601"
 }
+```
+
+Messages are validated using Pydantic models:
+
+```python
+class WSMessage(BaseModel):
+    type: str
+    data: dict
+    timestamp: datetime
+
+class PlayerAction(BaseModel):
+    type: Literal["player_action"]
+    data: PlayerActionData
+
+class PlayerActionData(BaseModel):
+    text: str = Field(..., min_length=1, max_length=2000)
 ```
 
 ### Client → Server Messages
@@ -181,13 +242,16 @@ Agent responses can be long. The server streams the response to the client in ch
 
 The client should render text as it arrives (typewriter effect or progressive display).
 
+FastAPI's WebSocket support handles this naturally — the server `await`s chunks from the LLM and sends each via `websocket.send_json()`.
+
 ## Authentication
 
 For now, authentication is simple:
 
 - Each client gets a player ID (could be a cookie, local storage token, or simple API key)
-- The player ID is sent with each request/connection
+- The player ID is sent with each request/connection (via `X-Player-ID` header)
 - Sessions are scoped to a player ID — you can only access your own sessions
+- FastAPI dependency injection extracts and validates the player ID
 
 This is intentionally minimal. A full auth system (OAuth, accounts, etc.) is a future extension.
 
@@ -197,9 +261,12 @@ This is intentionally minimal. A full auth system (OAuth, accounts, etc.) is a f
 - Session creation: Max 10 sessions per player
 - API requests: Standard rate limiting (100 req/min per player)
 
+Rate limiting can be implemented via FastAPI middleware or a library like `slowapi`.
+
 ## Error Handling
 
-All HTTP errors return:
+FastAPI automatically returns validation errors for invalid request bodies (422 Unprocessable Entity). For application-level errors, all HTTP errors return:
+
 ```json
 {
   "error": {
@@ -207,6 +274,23 @@ All HTTP errors return:
     "message": "Human-readable message"
   }
 }
+```
+
+Implemented via FastAPI exception handlers:
+
+```python
+class GameError(Exception):
+    def __init__(self, code: str, message: str, status_code: int = 400):
+        self.code = code
+        self.message = message
+        self.status_code = status_code
+
+@app.exception_handler(GameError)
+async def game_error_handler(request: Request, exc: GameError):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": {"code": exc.code, "message": exc.message}},
+    )
 ```
 
 Standard error codes:
@@ -217,10 +301,20 @@ Standard error codes:
 - `rate_limited` — Too many requests
 - `internal_error` — Unexpected server error
 
+## API Documentation
+
+FastAPI automatically generates interactive API documentation:
+
+- **Swagger UI**: Available at `/docs` — interactive API explorer
+- **ReDoc**: Available at `/redoc` — clean API reference
+- **OpenAPI JSON**: Available at `/openapi.json` — machine-readable spec
+
+All documentation is generated from the Pydantic models, route decorators, and docstrings. No manual OpenAPI spec maintenance needed.
+
 ## Future Extensions
 
-- **API versioning**: `/api/v2/` with breaking changes
-- **OAuth authentication**: Google, GitHub, etc.
+- **API versioning**: `/api/v2/` with breaking changes, using FastAPI routers
+- **OAuth authentication**: Google, GitHub, etc. via `authlib` or FastAPI security utilities
 - **Admin endpoints**: View all sessions, debug tools, metrics
 - **Webhook support**: Notify external services of game events
-- **GraphQL**: Alternative query interface for complex state queries
+- **GraphQL**: Alternative query interface via `strawberry-graphql` with FastAPI integration

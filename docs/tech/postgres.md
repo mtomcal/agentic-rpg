@@ -65,7 +65,7 @@ CREATE INDEX idx_events_session_type ON events(session_id, type);
 - The state structure evolves as the game develops
 - State is always loaded and saved as a unit (no partial reads needed from the DB)
 - JSONB allows indexing specific paths if needed later
-- Schema validation happens at the application layer (JSON Schema), not the database
+- Schema validation happens at the application layer (Pydantic models), not the database
 
 **Events as rows**: Each event is a row, not embedded in the session JSONB. This supports:
 - Efficient time-range queries
@@ -77,29 +77,70 @@ CREATE INDEX idx_events_session_type ON events(session_id, type);
 
 ## Migrations
 
-Use `golang-migrate/migrate` for schema migrations:
+Use **Alembic** for schema migrations:
 
 ```
-backend/internal/db/migrations/
-  000001_create_players.up.sql
-  000001_create_players.down.sql
-  000002_create_sessions.up.sql
-  000002_create_sessions.down.sql
-  000003_create_events.up.sql
-  000003_create_events.down.sql
+backend/alembic/
+  alembic.ini
+  env.py
+  versions/
+    0001_create_players.py
+    0002_create_sessions.py
+    0003_create_events.py
 ```
 
-Migrations run on application startup (or as a separate migration step in CI/deployment).
+Migration commands:
+
+```bash
+# Create a new migration
+alembic revision --autogenerate -m "description"
+
+# Apply all pending migrations
+alembic upgrade head
+
+# Rollback one migration
+alembic downgrade -1
+
+# Show current migration status
+alembic current
+```
+
+Migrations run on application startup (or as a separate migration step in CI/deployment). Alembic's `env.py` is configured with the async engine for asyncpg compatibility.
 
 ## Connection Management
 
-- Use `pgx` connection pool with sensible defaults (max 25 connections, 5 min idle timeout)
-- One pool shared across the application
+- Use **asyncpg** with an async connection pool via SQLAlchemy's `create_async_engine` or a raw `asyncpg.Pool`
+- Pool settings: max 25 connections, 5 min idle timeout
+- One pool shared across the application, created at FastAPI startup and closed at shutdown
 - Transactions for atomic state saves (update session + write events)
+
+```python
+import asyncpg
+
+async def create_pool() -> asyncpg.Pool:
+    return await asyncpg.create_pool(
+        dsn=settings.database_url,
+        min_size=5,
+        max_size=25,
+        max_inactive_connection_lifetime=300,
+    )
+```
+
+FastAPI lifespan manages the pool:
+
+```python
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.db_pool = await create_pool()
+    yield
+    await app.state.db_pool.close()
+```
 
 ## Local Development
 
-PostgreSQL runs in Docker Compose (see [Docker & Kubernetes](docker-kubernetes.md)). Connection string from environment variable.
+PostgreSQL runs in Docker Compose (see [Docker & Kubernetes](docker-kubernetes.md)). Connection string from environment variable (`DATABASE_URL`).
 
 ## Future Considerations
 

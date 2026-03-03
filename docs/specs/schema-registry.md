@@ -2,11 +2,11 @@
 
 ## Overview
 
-The schema registry is the single source of truth for all data structures in the system. Schemas are defined as JSON Schema files, and both the server (Go structs) and client (TypeScript types) are generated from them. This eliminates type drift between layers and provides a contract that both sides must honor.
+The schema registry is the single source of truth for all data structures in the system. Schemas are defined as **Pydantic v2 models** in Python — the models themselves ARE the schema. They define validation, serialization, documentation, and generate both OpenAPI specs (via FastAPI) and TypeScript types (via code generation). This eliminates type drift between layers and provides a contract that both sides must honor.
 
 ## What Gets a Schema
 
-Every data structure that crosses a boundary gets a JSON Schema:
+Every data structure that crosses a boundary gets a Pydantic model:
 
 - **API request/response bodies**: All HTTP and WebSocket message payloads
 - **Game state**: The full game state structure and all its sub-structures
@@ -14,76 +14,94 @@ Every data structure that crosses a boundary gets a JSON Schema:
 - **Tool parameters and return values**: Input/output for every agent tool
 - **Story outline structures**: Beats, outlines, adaptation records
 
-Internal-only structures (e.g., database query helpers, internal caches) do not need schemas.
+Internal-only structures (e.g., database query helpers, internal caches) do not need Pydantic models — plain dataclasses or dicts are fine.
 
 ## Schema Organization
 
-Schemas are organized in a `schemas/` directory at the project root:
+Schemas are organized as Python modules in a `schemas/` package within the backend:
 
 ```
-schemas/
-  game-state/
-    game-state.json         # Top-level game state
-    character.json          # Character model
-    character-stats.json    # Character stats
-    inventory.json          # Inventory model
-    item.json               # Item model
-    world.json              # World state
-    location.json           # Location model
-    conversation.json       # Conversation history
-    message.json            # Single message
-  story/
-    story-outline.json      # Full story outline
-    story-beat.json         # Single story beat
-    adaptation-record.json  # Outline adaptation log entry
-  events/
-    base-event.json         # Base event envelope
-    character-events.json   # Character event payloads
-    inventory-events.json   # Inventory event payloads
-    world-events.json       # World event payloads
-    story-events.json       # Story event payloads
-    session-events.json     # Session event payloads
-    agent-events.json       # Agent event payloads
-  api/
-    session-create.json     # POST /sessions request/response
-    session-list.json       # GET /sessions response
-    player-action.json      # WebSocket player action
-    agent-response.json     # WebSocket agent response
-    state-update.json       # WebSocket state update
-    error.json              # Error response
-  tools/
-    character-tools.json    # Character tool params/returns
-    inventory-tools.json    # Inventory tool params/returns
-    world-tools.json        # World tool params/returns
-    narrative-tools.json    # Narrative tool params/returns
+backend/
+  schemas/
+    __init__.py
+    game_state/
+      __init__.py
+      game_state.py        # Top-level GameState model
+      character.py         # Character, CharacterStats models
+      inventory.py         # Inventory, Item models
+      world.py             # WorldState, Location models
+      conversation.py      # ConversationHistory, Message models
+    story/
+      __init__.py
+      story_outline.py     # StoryOutline model
+      story_beat.py        # StoryBeat model
+      adaptation.py        # AdaptationRecord model
+    events/
+      __init__.py
+      base.py              # BaseEvent envelope model
+      character_events.py  # Character event payload models
+      inventory_events.py  # Inventory event payload models
+      world_events.py      # World event payload models
+      story_events.py      # Story event payload models
+      session_events.py    # Session event payload models
+      agent_events.py      # Agent event payload models
+    api/
+      __init__.py
+      sessions.py          # SessionCreate request/response, SessionList, etc.
+      websocket.py         # PlayerAction, AgentResponse, StateUpdate, Error
+    tools/
+      __init__.py
+      character_tools.py   # Character tool input/output models
+      inventory_tools.py   # Inventory tool input/output models
+      world_tools.py       # World tool input/output models
+      narrative_tools.py   # Narrative tool input/output models
 ```
 
-Each file defines one or more related schemas using standard JSON Schema (draft 2020-12).
+Each file defines one or more related Pydantic models. All models are re-exported from `__init__.py` files for convenient imports.
 
 ## Schema Conventions
 
-- **$id**: Every schema has a unique `$id` (e.g., `"https://agentic-rpg/schemas/game-state/character.json"`)
-- **$ref**: Schemas reference each other using `$ref` for composition
-- **Required fields**: Explicitly listed. Optional fields use `default` values.
-- **Descriptions**: Every field has a `description` for documentation
-- **Examples**: Schemas include `examples` for clarity and test data generation
-- **Enums**: Use `enum` for fixed value sets (status effects, item types, event types)
-- **Versioning**: Schemas include a `$schema` version field. Schema evolution follows the rules in [Game State](game-state.md) schema versioning.
+All Pydantic models follow these conventions:
 
-## Code Generation
+```python
+from pydantic import BaseModel, Field
+from enum import StrEnum
 
-### Go Structs
+class ItemType(StrEnum):
+    """Fixed value sets use StrEnum."""
+    weapon = "weapon"
+    armor = "armor"
+    consumable = "consumable"
+    quest = "quest"
 
-Generate Go structs from JSON Schema. The generated code:
+class Item(BaseModel):
+    """Every model has a docstring for documentation."""
 
-- Lives in a `generated/` package (not hand-edited)
-- Includes JSON tags for serialization
-- Includes validation methods (generated from schema constraints)
-- Is regenerated on every schema change via a build step
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {"id": "sword_01", "name": "Iron Sword", "type": "weapon", "quantity": 1}
+            ]
+        }
+    )
 
-### TypeScript Types
+    id: str = Field(..., description="Unique item identifier")
+    name: str = Field(..., description="Display name of the item")
+    type: ItemType = Field(..., description="Category of the item")
+    quantity: int = Field(default=1, ge=1, description="Stack count")
+    description: str = Field(default="", description="Flavor text for the item")
+```
 
-Generate TypeScript interfaces from JSON Schema. The generated code:
+- **Field descriptions**: Every field uses `Field(description=...)` for documentation
+- **Defaults**: Optional fields use `Field(default=...)` — explicit about what's optional
+- **Constraints**: Use Pydantic validators (`ge`, `le`, `min_length`, `pattern`, etc.)
+- **Enums**: Use `StrEnum` for fixed value sets (status effects, item types, event types)
+- **Composition**: Models reference each other directly — Pydantic handles nested validation
+- **Examples**: Models include `json_schema_extra.examples` for clarity and test data generation
+
+## TypeScript Type Generation
+
+TypeScript types are generated from Pydantic models for the frontend. The generated code:
 
 - Lives in a `generated/` directory in the frontend project
 - Includes type definitions (interfaces and enums)
@@ -92,44 +110,81 @@ Generate TypeScript interfaces from JSON Schema. The generated code:
 ### Generation Workflow
 
 ```
-schemas/*.json
+backend/schemas/**/*.py (Pydantic models)
     │
-    ├──→ [Go codegen tool] ──→ backend/generated/*.go
+    ├──→ [FastAPI] ──→ OpenAPI spec (automatic, at /openapi.json)
     │
-    └──→ [TS codegen tool] ──→ frontend/src/generated/*.ts
+    └──→ [pydantic-to-typescript / datamodel-code-generator] ──→ frontend/src/generated/*.ts
 ```
 
 The generation step runs:
 - As a pre-commit hook (optional, for safety)
 - As part of CI (required, to catch drift)
-- Manually via a script during development
+- Manually via a script during development (`uv run generate-types`)
 
-If the generated code doesn't match the schemas, CI fails.
+If the generated TypeScript doesn't match the Pydantic models, CI fails.
+
+### Generation Tools
+
+Two options for TypeScript generation:
+
+1. **pydantic-to-typescript**: Directly converts Pydantic models to TypeScript interfaces. Simple and purpose-built.
+2. **datamodel-code-generator**: Generates TypeScript from the OpenAPI JSON that FastAPI produces. More flexible, works with any OpenAPI spec.
+
+Either approach produces the same result — TypeScript interfaces matching the Pydantic models.
 
 ## Validation
 
-Schemas serve dual purpose:
+Pydantic models serve dual purpose:
 
-1. **Compile-time**: Generated types enforce structure in Go and TypeScript
-2. **Runtime**: The event system validates event payloads against their schemas before emission. API requests are validated against their schemas before processing.
+1. **Static typing**: Type checkers (mypy, pyright) enforce structure in Python. Generated TypeScript types enforce structure in the frontend.
+2. **Runtime validation**: FastAPI automatically validates all request bodies against Pydantic models. The event system validates event payloads by constructing Pydantic model instances before emission.
 
-Runtime validation uses the same JSON Schema files, loaded at startup.
+Runtime validation is built into Pydantic — no separate validation library needed. Invalid data raises `ValidationError` with detailed error messages.
+
+```python
+# FastAPI validates automatically — just declare the type
+@app.post("/api/v1/sessions")
+async def create_session(request: SessionCreateRequest) -> SessionCreateResponse:
+    ...  # request is already validated
+
+# Manual validation where needed
+try:
+    event = CharacterStatChanged(**payload)
+except ValidationError as e:
+    logger.error(f"Invalid event payload: {e}")
+```
 
 ## Schema Evolution
 
 When a schema changes:
 
-1. Update the JSON Schema file
-2. Run the generation script
-3. Fix any compile errors in Go and TypeScript (the generated types changed)
+1. Update the Pydantic model
+2. Run the TypeScript generation script
+3. Fix any type errors in Python and TypeScript (the types changed)
 4. Update any tests that depend on the old structure
 5. If the change is backwards-incompatible, write a state migration (see [Game State](game-state.md))
 
 Adding new optional fields with defaults is always safe. Removing fields, renaming fields, or changing types is a breaking change.
 
+### Model Versioning
+
+For breaking changes that need to coexist, use versioned models:
+
+```python
+class CharacterV1(BaseModel):
+    name: str
+    health: int
+
+class CharacterV2(BaseModel):
+    name: str
+    stats: CharacterStats  # Replaces flat health field
+```
+
+The API version (`/api/v1/`, `/api/v2/`) determines which model version is used for serialization.
+
 ## Future Extensions
 
-- **Schema diffing**: Automated detection of breaking vs. non-breaking changes
-- **OpenAPI generation**: Generate an OpenAPI spec from the schemas for API documentation
-- **Mock data generation**: Auto-generate test fixtures from schema examples
-- **Schema documentation site**: Auto-generated docs from schema descriptions
+- **Schema diffing**: Automated detection of breaking vs. non-breaking changes by comparing Pydantic model JSON schemas across versions
+- **Mock data generation**: Auto-generate test fixtures from model examples and Pydantic's `model_construct()`
+- **Schema documentation site**: Auto-generated docs from FastAPI's built-in OpenAPI/Swagger UI (available for free at `/docs`)

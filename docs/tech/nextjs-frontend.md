@@ -7,7 +7,7 @@ Use Next.js with TypeScript for the frontend client.
 ## Rationale
 
 - **Industry standard**: Next.js is the default React framework. Well-understood by AI assistants and human developers alike.
-- **TypeScript**: Full type safety, especially valuable when types are generated from shared schemas.
+- **TypeScript**: Full type safety, especially valuable when types are generated from backend Pydantic models.
 - **Not a learning goal**: The frontend is a means to an end. Use the most conventional, well-supported stack so development is fast and predictable.
 - **SSR optional**: Next.js supports server-side rendering, but we may not need it initially. It's there if we want it.
 
@@ -18,7 +18,7 @@ Use Next.js with TypeScript for the frontend client.
 - **Tailwind CSS** — styling (utility-first, fast to build with)
 - **Zustand** — lightweight state management
 - **Native WebSocket API** — no socket library needed for simple use
-- **Generated types** — TypeScript interfaces generated from JSON Schema (see [Schema Codegen](schema-codegen.md))
+- **Generated types** — TypeScript interfaces generated from Pydantic models (see [Pydantic Models](pydantic-models.md))
 
 ## What We're NOT Using
 
@@ -51,7 +51,7 @@ frontend/
       websocket.ts          # WebSocket connection manager
       store.ts              # Zustand store
     generated/
-      ...                   # Generated TypeScript types from JSON Schema
+      ...                   # Generated TypeScript types from Pydantic models
   tailwind.config.ts
   tsconfig.json
   next.config.ts
@@ -79,6 +79,8 @@ Zustand store with slices for:
 
 All API responses and WebSocket messages are typed using the generated TypeScript interfaces. No `any` types at the boundaries.
 
+Types are generated from the backend's Pydantic models using `pydantic-to-typescript` or `datamodel-code-generator`. The generation runs as part of the build pipeline and CI verifies no drift between the Python models and the TypeScript types.
+
 ## Build and Run
 
 ```bash
@@ -90,4 +92,7 @@ npm run build
 
 # Test
 npm run test
+
+# Regenerate types from Pydantic models
+npm run generate-types
 ```
