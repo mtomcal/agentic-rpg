@@ -175,12 +175,12 @@ A single-page app where the user can create a game session and play through it v
 - [x] Beat list: shows all beats with their status (scrollable if many)
 
 #### Sidebar Component (`components/Sidebar.tsx`)
-- [ ] Tab bar: Character | Inventory | Location | Story
-- [ ] Active tab highlighted
-- [ ] Renders the selected panel component
-- [ ] Default tab: Character
-- [ ] Scrollable panel content area
-- [ ] Fixed width, full height
+- [x] Tab bar: Character | Inventory | Location | Story
+- [x] Active tab highlighted
+- [x] Renders the selected panel component
+- [x] Default tab: Character
+- [x] Scrollable panel content area
+- [x] Fixed width, full height
 
 #### Layout & Styling
 - [x] `app/layout.tsx`: dark theme base styles (bg-gray-900, text-gray-100)

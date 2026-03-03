@@ -76,7 +76,7 @@
 - [x] 10. InventoryPanel Component
 - [x] 11. LocationPanel Component
 - [x] 12. StoryPanel Component
-- [ ] 13. Sidebar Component
+- [x] 13. Sidebar Component
 - [ ] 14. Home Page — app/page.tsx
 - [ ] 15. New Game Page — app/new/page.tsx
 - [ ] 16. Play Page — app/play/[sessionId]/page.tsx
