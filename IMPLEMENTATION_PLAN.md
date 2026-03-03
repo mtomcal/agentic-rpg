@@ -47,7 +47,7 @@
 
 ### Medium Priority — Phase 3: Tool Registry + All Tools
 
-- [ ] 20. Write tool test fixtures (tool_game_state, tool_event_bus, tool_registry)
+- [x] 20. Write tool test fixtures (tool_game_state, tool_event_bus, tool_registry)
 - [ ] 21. Write registry tests + implement ToolRegistry (tools/registry.py)
 - [ ] 22. Write character tool tests — RED, then implement (tools/character.py) — GREEN
 - [ ] 23. Write inventory tool tests — RED, then implement (tools/inventory.py) — GREEN
