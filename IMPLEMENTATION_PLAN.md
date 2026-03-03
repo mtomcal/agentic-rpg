@@ -41,7 +41,7 @@
 - [x] 14. Implement StateManager (state/manager.py) — GREEN
 - [x] 15. Write event bus tests (test_bus.py) — RED
 - [x] 16. Implement EventBus (events/bus.py) + EventPayloadRegistry (events/schemas.py) — GREEN
-- [ ] 17. Write event persistence tests (test_persistence.py) — RED
+- [x] 17. Write event persistence tests (test_persistence.py) — RED
 - [ ] 18. Implement event persistence (events/persistence.py) — GREEN
 - [ ] 19. Run full test suite — all Phase 1+2 tests green
 
