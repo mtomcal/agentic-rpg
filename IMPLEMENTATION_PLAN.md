@@ -59,7 +59,7 @@
 
 - [x] 27. Write LLM client tests + implement (llm/client.py)
 - [x] 28. Write context assembly tests — RED, then implement (agent/context.py, agent/prompt.py) — GREEN
-- [ ] 29. Write agent graph tests — RED, then implement (agent/graph.py) — GREEN
+- [x] 29. Write agent graph tests — RED, then implement (agent/graph.py) — GREEN
 - [ ] 30. Run full test suite — all Phase 1-4 tests green
 
 ### Medium Priority — Phase 5: Story Engine
