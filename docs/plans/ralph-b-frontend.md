@@ -72,17 +72,17 @@ A single-page app where the user can create a game session and play through it v
 - [x] Error handling: throw on non-2xx responses with message from body
 
 #### WebSocket Client (`lib/websocket.ts`)
-- [ ] `GameWebSocket` class or module
-- [ ] `connect(sessionId: string)` — opens WebSocket to ws://host/api/v1/sessions/{id}/ws
-- [ ] `disconnect()` — closes WebSocket cleanly
-- [ ] `sendAction(text: string)` — sends { type: "player_action", data: { text }, timestamp: ISO }
-- [ ] `onConnected(callback)` — register handler for "connected" messages
-- [ ] `onAgentResponse(callback)` — register handler for "agent_response" messages
-- [ ] `onStateUpdate(callback)` — register handler for "state_update" messages
-- [ ] `onError(callback)` — register handler for "error" messages
-- [ ] `onClose(callback)` — register handler for connection close
-- [ ] Auto-reconnect: on unexpected close, retry after 1s, 2s, 4s (up to 30s)
-- [ ] `getStatus()` — returns "connecting" | "connected" | "disconnected"
+- [x] `GameWebSocket` class or module
+- [x] `connect(sessionId: string)` — opens WebSocket to ws://host/api/v1/sessions/{id}/ws
+- [x] `disconnect()` — closes WebSocket cleanly
+- [x] `sendAction(text: string)` — sends { type: "player_action", data: { text }, timestamp: ISO }
+- [x] `onConnected(callback)` — register handler for "connected" messages
+- [x] `onAgentResponse(callback)` — register handler for "agent_response" messages
+- [x] `onStateUpdate(callback)` — register handler for "state_update" messages
+- [x] `onError(callback)` — register handler for "error" messages
+- [x] `onClose(callback)` — register handler for connection close
+- [x] Auto-reconnect: on unexpected close, retry after 1s, 2s, 4s (up to 30s)
+- [x] `getStatus()` — returns "connecting" | "connected" | "disconnected"
 
 #### State Management (`lib/store.ts`)
 - [ ] Choose approach: React Context + useReducer OR zustand (either is fine)

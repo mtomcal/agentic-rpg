@@ -68,7 +68,7 @@
 - [x] 2. TypeScript Types — types/game.ts
 - [x] 3. TypeScript Types — types/api.ts
 - [x] 4. API Client — lib/api.ts
-- [ ] 5. WebSocket Client — lib/websocket.ts
+- [x] 5. WebSocket Client — lib/websocket.ts
 - [ ] 6. State Management — lib/store.ts
 - [ ] 7. Layout & Styling — app/layout.tsx + dark theme
 - [ ] 8. ChatPanel Component
