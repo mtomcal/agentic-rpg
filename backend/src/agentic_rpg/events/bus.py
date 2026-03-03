@@ -66,6 +66,23 @@ class EventBus:
                     result,
                 )
 
+    def publish_sync(self, event: GameEvent) -> None:
+        """Synchronous event publish for use in sync tool contexts.
+
+        Appends to history and invokes subscriber coroutines by driving them
+        to completion inline. Works for simple callbacks that don't truly
+        suspend (e.g. callbacks that just append to a list).
+        """
+        self._history.append(event)
+
+        callbacks = list(self._subscribers.get(event.event_type, {}).values())
+        for callback in callbacks:
+            coro = callback(event)
+            try:
+                coro.send(None)
+            except StopIteration:
+                pass
+
     async def get_history(
         self,
         event_type: str | None = None,

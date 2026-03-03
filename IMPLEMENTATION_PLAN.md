@@ -75,8 +75,8 @@
 - [x] 36. Write game state endpoint tests — RED, then implement — GREEN
 - [x] 37. Write WebSocket tests — RED, then implement (api/websocket.py) — GREEN
 - [x] 38. Wire everything in main.py (lifespan, routes, middleware, dependencies)
-- [ ] 39. Run full test suite — all tests green, docker compose up works
-- [ ] 40. Final coverage check: `uv run pytest --cov=agentic_rpg --cov-branch --cov-report=term-missing` meets 85%
+- [x] 39. Run full test suite — all tests green, docker compose up works
+- [x] 40. Final coverage check: `uv run pytest --cov=agentic_rpg --cov-branch --cov-report=term-missing` meets 85%
 
 ## Discoveries
 
