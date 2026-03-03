@@ -160,12 +160,12 @@ A single-page app where the user can create a game session and play through it v
 - [x] Item type color coding: weapon=red, armor=blue, consumable=green, key=yellow, misc=gray
 
 #### LocationPanel Component (`components/LocationPanel.tsx`)
-- [ ] Current location name (header)
-- [ ] Location description (paragraph)
-- [ ] "Connected locations" list with names
-- [ ] "NPCs here" list (if any)
-- [ ] "Items here" list (if any)
-- [ ] Handles missing location data gracefully
+- [x] Current location name (header)
+- [x] Location description (paragraph)
+- [x] "Connected locations" list with names
+- [x] "NPCs here" list (if any)
+- [x] "Items here" list (if any)
+- [x] Handles missing location data gracefully
 
 #### StoryPanel Component (`components/StoryPanel.tsx`)
 - [ ] Story premise (expandable/collapsible, default collapsed)

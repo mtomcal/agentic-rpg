@@ -74,7 +74,7 @@
 - [x] 8. ChatPanel Component
 - [x] 9. CharacterPanel Component
 - [x] 10. InventoryPanel Component
-- [ ] 11. LocationPanel Component
+- [x] 11. LocationPanel Component
 - [ ] 12. StoryPanel Component
 - [ ] 13. Sidebar Component
 - [ ] 14. Home Page — app/page.tsx
