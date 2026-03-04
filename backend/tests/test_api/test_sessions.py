@@ -110,7 +110,7 @@ class TestCreateSession:
         assert response.status_code == 422
 
     async def test_create_session_missing_player_header(self, app_client):
-        """Missing X-Player-ID header returns 400."""
+        """Missing X-Player-ID header returns 400 with error detail."""
         response = await app_client.post(
             "/api/v1/sessions",
             json={
@@ -120,11 +120,11 @@ class TestCreateSession:
         )
         assert response.status_code == 400
         data = response.json()
-        assert "detail" in data
+        assert data["detail"]["error"] == "Missing X-Player-ID header"
 
 
     async def test_create_session_invalid_player_uuid(self, app_client):
-        """Invalid UUID in X-Player-ID header returns 400."""
+        """Invalid UUID in X-Player-ID header returns 400 with error detail."""
         response = await app_client.post(
             "/api/v1/sessions",
             json={
@@ -135,7 +135,7 @@ class TestCreateSession:
         )
         assert response.status_code == 400
         data = response.json()
-        assert "detail" in data
+        assert "Invalid X-Player-ID header" in data["detail"]["error"]
 
 
 class TestListSessions:
@@ -209,7 +209,7 @@ class TestGetSession:
         assert gs["character"]["name"] == info["game_state"].character.name
 
     async def test_get_nonexistent_session(self, app_client, player_id_header):
-        """Getting a non-existent session returns 404."""
+        """Getting a non-existent session returns 404 with session_not_found error."""
         player_id = uuid4()
         fake_session = uuid4()
         response = await app_client.get(
@@ -218,7 +218,7 @@ class TestGetSession:
         )
         assert response.status_code == 404
         data = response.json()
-        assert "detail" in data
+        assert data["detail"]["error"] == "session_not_found"
 
     async def test_get_session_missing_player_header(self, app_client):
         """Missing X-Player-ID header returns 400."""
@@ -257,7 +257,7 @@ class TestDeleteSession:
         assert response.status_code == 404
 
     async def test_delete_nonexistent_session(self, app_client, player_id_header):
-        """Deleting a non-existent session returns 404."""
+        """Deleting a non-existent session returns 404 with session_not_found error."""
         player_id = uuid4()
         fake_session = uuid4()
         response = await app_client.delete(
@@ -266,7 +266,7 @@ class TestDeleteSession:
         )
         assert response.status_code == 404
         data = response.json()
-        assert "detail" in data
+        assert data["detail"]["error"] == "session_not_found"
 
     async def test_delete_session_missing_player_header(self, app_client):
         """Missing X-Player-ID header returns 400."""

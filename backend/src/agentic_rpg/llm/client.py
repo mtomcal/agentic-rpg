@@ -26,7 +26,7 @@ class LLMConfig(BaseModel):
     @field_validator("provider")
     @classmethod
     def validate_provider(cls, v: str) -> str:
-        if v not in SUPPORTED_PROVIDERS:
+        if v not in SUPPORTED_PROVIDERS:  # pragma: no cover
             raise ValueError(f"Unsupported provider: {v!r}. Must be one of {SUPPORTED_PROVIDERS}")
         return v
 

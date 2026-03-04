@@ -102,6 +102,17 @@ describe("useGameStore", () => {
       useGameStore.getState().appendAgentChunk("orphan text");
       expect(useGameStore.getState().messages).toHaveLength(0);
     });
+
+    it("does nothing if last message is not streaming", () => {
+      // Add a non-streaming player message
+      useGameStore.getState().addPlayerMessage("hello");
+      // Finalize won't apply because the message isn't streaming
+      useGameStore.getState().appendAgentChunk("chunk");
+      const messages = useGameStore.getState().messages;
+      // Still only 1 message, unchanged
+      expect(messages).toHaveLength(1);
+      expect(messages[0].content).toBe("hello");
+    });
   });
 
   describe("finalizeAgentMessage", () => {
@@ -113,6 +124,12 @@ describe("useGameStore", () => {
       const messages = useGameStore.getState().messages;
       expect(messages[0].isStreaming).toBe(false);
       expect(messages[0].content).toBe("Done.");
+    });
+
+    it("does nothing if there are no messages", () => {
+      // No messages in store — finalize is a no-op
+      expect(() => useGameStore.getState().finalizeAgentMessage()).not.toThrow();
+      expect(useGameStore.getState().messages).toHaveLength(0);
     });
   });
 
@@ -135,6 +152,19 @@ describe("useGameStore", () => {
           changes: {},
         })
       ).not.toThrow();
+    });
+
+    it("skips update when path traversal hits undefined intermediate", () => {
+      useGameStore.getState().setGameState(mockGameState);
+      // "nonexistent.deep.path" — first segment doesn't exist on gameState
+      expect(() =>
+        useGameStore.getState().updateFromStateEvent({
+          event_type: "test",
+          changes: { "nonexistent.deep.path": { old: null, new: "value" } },
+        })
+      ).not.toThrow();
+      // Game state should be unchanged
+      expect(useGameStore.getState().gameState?.character.name).toBe("Aldric");
     });
   });
 

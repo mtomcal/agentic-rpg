@@ -44,6 +44,33 @@ describe("NewGamePage", () => {
     expect(mockCreateSession).not.toHaveBeenCalled();
   });
 
+  it("does not submit when only genre is filled", () => {
+    render(<NewGamePage />);
+    fireEvent.change(screen.getByLabelText("Genre / Setting"), {
+      target: { value: "Fantasy" },
+    });
+    fireEvent.click(screen.getByText("Start Adventure"));
+    expect(mockCreateSession).not.toHaveBeenCalled();
+  });
+
+  it("does not submit when genre is whitespace only", () => {
+    render(<NewGamePage />);
+    fireEvent.change(screen.getByLabelText("Genre / Setting"), {
+      target: { value: "   " },
+    });
+    fireEvent.change(screen.getByLabelText("Character Name"), {
+      target: { value: "Aldric" },
+    });
+    fireEvent.change(screen.getByLabelText("Profession"), {
+      target: { value: "Knight" },
+    });
+    fireEvent.change(screen.getByLabelText("Background"), {
+      target: { value: "A soldier" },
+    });
+    fireEvent.click(screen.getByText("Start Adventure"));
+    expect(mockCreateSession).not.toHaveBeenCalled();
+  });
+
   it("submits form and redirects on success", async () => {
     mockCreateSession.mockResolvedValue({
       session_id: "sess-001",
@@ -77,6 +104,31 @@ describe("NewGamePage", () => {
 
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith("/play/sess-001");
+    });
+  });
+
+  it("shows fallback error message when error has no message", async () => {
+    mockCreateSession.mockRejectedValue({});
+
+    render(<NewGamePage />);
+
+    fireEvent.change(screen.getByLabelText("Genre / Setting"), {
+      target: { value: "Fantasy" },
+    });
+    fireEvent.change(screen.getByLabelText("Character Name"), {
+      target: { value: "A" },
+    });
+    fireEvent.change(screen.getByLabelText("Profession"), {
+      target: { value: "B" },
+    });
+    fireEvent.change(screen.getByLabelText("Background"), {
+      target: { value: "C" },
+    });
+
+    fireEvent.click(screen.getByText("Start Adventure"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Failed to create session")).toBeInTheDocument();
     });
   });
 

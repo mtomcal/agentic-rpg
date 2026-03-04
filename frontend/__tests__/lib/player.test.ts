@@ -45,6 +45,22 @@ describe("getPlayerId", () => {
     expect(mockRandomUUID).toHaveBeenCalledTimes(1);
   });
 
+  it("returns a fresh UUID in SSR environment (window undefined) without persisting", () => {
+    const originalWindow = global.window;
+    // Simulate SSR by deleting window
+    // @ts-ignore
+    delete global.window;
+    try {
+      const id = getPlayerId();
+      expect(id).toBe("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+      // Should not call localStorage in SSR
+      expect(mockLocalStorage.setItem).not.toHaveBeenCalled();
+      expect(mockLocalStorage.getItem).not.toHaveBeenCalled();
+    } finally {
+      global.window = originalWindow;
+    }
+  });
+
   it("persists the UUID to localStorage", () => {
     getPlayerId();
     expect(mockLocalStorage.setItem).toHaveBeenCalledWith(

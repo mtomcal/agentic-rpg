@@ -112,4 +112,62 @@ describe("PlayPage", () => {
     fireEvent.click(screen.getByRole("button", { name: /send/i }));
     expect(wsInstance.sendAction).toHaveBeenCalledWith("I go north");
   });
+
+  it("onError handler adds system error message to store and stops agent thinking", () => {
+    render(<PlayPage />);
+
+    act(() => {
+      // Set agent thinking first
+      useGameStore.getState().setAgentThinking(true);
+      const errorHandler = wsInstance.onError.mock.calls[0][0];
+      errorHandler({ message: "Agent failed" });
+    });
+
+    expect(useGameStore.getState().isAgentThinking).toBe(false);
+    const messages = useGameStore.getState().messages;
+    const errorMsg = messages.find((m) => m.role === "system");
+    expect(errorMsg).toBeDefined();
+    expect(errorMsg?.content).toContain("Agent failed");
+  });
+
+  it("onClose handler sets connection status to disconnected", () => {
+    render(<PlayPage />);
+
+    act(() => {
+      useGameStore.getState().setConnectionStatus("connected");
+      const closeHandler = wsInstance.onClose.mock.calls[0][0];
+      closeHandler({});
+    });
+
+    expect(useGameStore.getState().connectionStatus).toBe("disconnected");
+  });
+
+  it("onAgentResponse handler with is_complete=true finalizes message and stops thinking", () => {
+    render(<PlayPage />);
+
+    act(() => {
+      useGameStore.getState().startAgentMessage();
+      useGameStore.getState().setAgentThinking(true);
+      const agentHandler = wsInstance.onAgentResponse.mock.calls[0][0];
+      agentHandler({ is_complete: true, text: "" });
+    });
+
+    expect(useGameStore.getState().isAgentThinking).toBe(false);
+    const messages = useGameStore.getState().messages;
+    expect(messages[0].isStreaming).toBe(false);
+  });
+
+  it("onAgentResponse handler with is_complete=false appends chunk", () => {
+    render(<PlayPage />);
+
+    act(() => {
+      useGameStore.getState().startAgentMessage();
+      const agentHandler = wsInstance.onAgentResponse.mock.calls[0][0];
+      agentHandler({ is_complete: false, text: "Hello" });
+    });
+
+    const messages = useGameStore.getState().messages;
+    expect(messages[0].content).toBe("Hello");
+    expect(messages[0].isStreaming).toBe(true);
+  });
 });

@@ -142,3 +142,12 @@ class TestCreateChatModel:
         """Passing a provider not in the allowed set raises ValueError."""
         with pytest.raises(ValueError, match="provider"):
             LLMConfig(provider="cohere")
+
+    @patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key-123"})
+    def test_anthropic_request_timeout_propagated(self):
+        """request_timeout is passed as 'timeout' to ChatAnthropic constructor."""
+        config = LLMConfig(provider="anthropic", request_timeout=45.0)
+        model = create_chat_model(config)
+        assert isinstance(model, ChatAnthropic)
+        # ChatAnthropic stores the timeout as default_request_timeout
+        assert model.default_request_timeout == 45.0

@@ -117,7 +117,13 @@ describe("HomePage", () => {
 
     fireEvent.click(screen.getByLabelText("Delete session"));
     expect(window.confirm).toHaveBeenCalled();
-    expect(mockDeleteSession).toHaveBeenCalledWith("sess-001");
+    // Wait for delete to complete (avoids act() warning from async state update)
+    await waitFor(() => {
+      expect(mockDeleteSession).toHaveBeenCalledWith("sess-001");
+    });
+    await waitFor(() => {
+      expect(screen.queryByText("Aldric")).not.toBeInTheDocument();
+    });
   });
 
   it("does not delete when confirmation cancelled", async () => {
@@ -154,6 +160,36 @@ describe("HomePage", () => {
     fireEvent.click(screen.getByLabelText("Delete session"));
     await waitFor(() => {
       expect(screen.getByText(/Delete failed/)).toBeInTheDocument();
+    });
+  });
+
+  it("shows fallback error message when delete error has no message", async () => {
+    mockListSessions.mockResolvedValue({
+      sessions: [
+        { session_id: "sess-001", status: "active", character_name: "Aldric", created_at: "2024-01-01T00:00:00Z", updated_at: "2024-01-01T00:00:00Z" },
+      ],
+    });
+    // Error without message property
+    mockDeleteSession.mockRejectedValue({});
+    window.confirm = jest.fn(() => true);
+
+    render(<HomePage />);
+    await waitFor(() => {
+      expect(screen.getByText("Aldric")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByLabelText("Delete session"));
+    await waitFor(() => {
+      expect(screen.getByText("Failed to delete session")).toBeInTheDocument();
+    });
+  });
+
+  it("shows fallback error message when load error has no message", async () => {
+    mockListSessions.mockRejectedValue({});
+
+    render(<HomePage />);
+    await waitFor(() => {
+      expect(screen.getByText("Failed to load sessions")).toBeInTheDocument();
     });
   });
 });
