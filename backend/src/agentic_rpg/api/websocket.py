@@ -138,7 +138,11 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str) -> None:
             "description": loc.description if loc else "",
         },
     }
-    await websocket.send_json(_make_message("connected", connected_data))
+    try:
+        await websocket.send_json(_make_message("connected", connected_data))
+    except WebSocketDisconnect:
+        hub.unregister(session_id)
+        return
 
     # -- Message loop --
     try:
