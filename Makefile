@@ -8,9 +8,9 @@ help:
 	@echo "  make install          Install dependencies for both backend and frontend"
 	@echo ""
 	@echo "Development:"
-	@echo "  make dev              Start Postgres + backend + frontend (docker compose down on exit)"
-	@echo "  make dev-backend      Run backend dev server only (http://localhost:8080)"
-	@echo "  make dev-frontend     Run frontend dev server only (http://localhost:3000)"
+	@echo "  make dev              Start all services via docker compose (live reload)"
+	@echo "  make dev-backend      Start backend + Postgres only"
+	@echo "  make dev-frontend     Start frontend only"
 	@echo "  make db-up            Start Postgres via docker compose"
 	@echo "  make db-down          Stop Postgres"
 	@echo "  make check-zombies    Check for orphaned dev processes"
@@ -55,28 +55,20 @@ db-down:
 	@echo "Stopping Postgres..."
 	docker compose down postgres
 
-# Development
+# Development — all via docker compose with live reload
 dev:
-	@echo "Starting Postgres, backend, and frontend..."
+	@echo "Starting all services (Ctrl+C to stop)..."
 	@echo "Postgres: localhost:5432"
-	@echo "Backend:  http://localhost:8080"
-	@echo "Frontend: http://localhost:3000"
+	@echo "Backend:  http://localhost:8080 (live reload)"
+	@echo "Frontend: http://localhost:3000 (hot reload)"
 	@echo ""
-	docker compose up -d postgres
-	@until docker compose exec postgres pg_isready -U postgres > /dev/null 2>&1; do \
-		sleep 1; \
-	done
-	@echo "Postgres is ready"
-	cd backend && uv run alembic upgrade head
-	@trap 'echo ""; echo "Shutting down..."; kill 0; docker compose down' EXIT; \
-	cd backend && uv run uvicorn agentic_rpg.main:app --reload --host 0.0.0.0 --port 8080 & \
-	cd frontend && npm run dev
+	docker compose up --build
 
 dev-backend:
-	cd backend && uv run uvicorn agentic_rpg.main:app --reload --host 0.0.0.0 --port 8080
+	docker compose up --build backend postgres
 
 dev-frontend:
-	cd frontend && npm run dev
+	docker compose up --build frontend
 
 # Testing - backend unit tests (no DB required)
 test-unit:
@@ -110,9 +102,9 @@ test-db:
 		sleep 1; \
 	done
 	@echo "Running migrations..."
-	cd backend && uv run alembic upgrade head
+	cd backend && DATABASE_URL=postgresql://postgres:postgres@localhost:5432/agentic_rpg uv run alembic upgrade head
 	@echo "Running DB-dependent tests..."
-	cd backend && uv run pytest \
+	cd backend && DATABASE_URL=postgresql://postgres:postgres@localhost:5432/agentic_rpg uv run pytest \
 		tests/test_state/ \
 		tests/test_events/test_persistence.py \
 		tests/test_api/test_sessions.py \

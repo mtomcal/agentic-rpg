@@ -9,11 +9,13 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/agentic_rpg
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - LOG_LEVEL=debug
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/alembic:/app/alembic
+    command: uv run uvicorn agentic_rpg.main:app --reload --host 0.0.0.0 --port 8080
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - sandbox-net
 
   postgres:
     image: postgres:16-alpine
@@ -30,24 +32,25 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - sandbox-net
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: builder
     ports:
       - "3000:3000"
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8080
       - NEXT_PUBLIC_WS_URL=ws://localhost:8080
+    volumes:
+      - ./frontend/app:/app/app
+      - ./frontend/components:/app/components
+      - ./frontend/lib:/app/lib
+      - ./frontend/types:/app/types
+    command: npm run dev -- --hostname 0.0.0.0
     depends_on:
       - backend
-    networks:
-      - sandbox-net
-
-networks:
-  sandbox-net:
-    driver: bridge
 
 volumes:
   pgdata:
