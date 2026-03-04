@@ -68,8 +68,18 @@ class TestEventFixtures:
     async def test_api_event_bus_type(self, api_event_bus):
         assert isinstance(api_event_bus, EventBus)
 
+    async def test_api_event_bus_starts_empty(self, api_event_bus):
+        """A fresh EventBus has no subscribers registered."""
+        # _subscribers is a defaultdict; summing its values gives total subscriber count
+        total_subscribers = sum(len(v) for v in api_event_bus._subscribers.values())
+        assert total_subscribers == 0
+
     async def test_event_persistence_type(self, event_persistence):
         assert isinstance(event_persistence, EventPersistence)
+
+    async def test_event_persistence_has_pool(self, event_persistence, clean_db):
+        """EventPersistence fixture is backed by the test pool."""
+        assert event_persistence._pool is clean_db
 
 
 class TestPlayerIdHeader:

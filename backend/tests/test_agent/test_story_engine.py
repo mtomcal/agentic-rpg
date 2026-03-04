@@ -498,3 +498,49 @@ async def test_generate_initial_story_state():
     assert state.active_beat_index == 0
     assert state.summary == ""
     assert state.adaptations == []
+
+
+# ---- adapt_outline — zero resolved beats ----
+
+
+async def test_adapt_outline_with_zero_resolved_beats():
+    """adapt_outline when active_beat_index == 0 (no resolved beats) replaces all beats."""
+    from agentic_rpg.agent.story_engine import adapt_outline
+
+    # State where the first beat is active and nothing has been resolved yet
+    state = _make_story_state(4)
+    assert state.active_beat_index == 0
+    assert state.outline.beats[0].status == BeatStatus.active
+
+    new_beats = [
+        StoryBeat(
+            summary=f"Fresh beat {i}",
+            location=f"fresh_loc_{i}",
+            flexibility=BeatFlexibility.flexible,
+        )
+        for i in range(3)
+    ]
+    new_outline = StoryOutline(
+        premise=state.outline.premise,
+        setting=state.outline.setting,
+        beats=new_beats,
+    )
+    structured_llm = AsyncMock()
+    structured_llm.ainvoke = AsyncMock(return_value=new_outline)
+    llm = MagicMock()
+    llm.with_structured_output = MagicMock(return_value=structured_llm)
+
+    result = await adapt_outline(
+        llm, state, reason="Complete pivot at start", changes="Player refused the quest"
+    )
+
+    # No resolved beats to preserve — all beats come from the new outline
+    assert len(result.outline.beats) == 3
+    assert result.outline.beats[0].summary == "Fresh beat 0"
+    assert result.outline.beats[1].summary == "Fresh beat 1"
+    assert result.outline.beats[2].summary == "Fresh beat 2"
+
+    # Adaptation is logged
+    assert len(result.adaptations) == 1
+    assert result.adaptations[0].reason == "Complete pivot at start"
+    assert result.adaptations[0].changes == "Player refused the quest"

@@ -62,4 +62,20 @@ describe("LocationPanel", () => {
     render(<LocationPanel location={noItems} locations={mockLocations} />);
     expect(screen.queryByText("Items Here")).not.toBeInTheDocument();
   });
+
+  it("shows connection ID when location is not in locations map", () => {
+    const unknownConnectionLocation = {
+      ...mockLocation,
+      connections: ["loc-999"], // ID not present in locations map
+    };
+    render(<LocationPanel location={unknownConnectionLocation} locations={mockLocations} />);
+    // Falls back to showing the raw ID
+    expect(screen.getByText("loc-999")).toBeInTheDocument();
+  });
+
+  it("hides connected locations section when no connections", () => {
+    const noConnections = { ...mockLocation, connections: [] };
+    render(<LocationPanel location={noConnections} locations={mockLocations} />);
+    expect(screen.queryByText("Connected Locations")).not.toBeInTheDocument();
+  });
 });

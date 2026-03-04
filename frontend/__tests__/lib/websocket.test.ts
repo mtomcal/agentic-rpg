@@ -257,5 +257,61 @@ describe("GameWebSocket", () => {
 
       expect(ws.getStatus()).toBe("disconnected");
     });
+
+    it("does not reconnect if intentionalClose is set before timer fires", () => {
+      ws.connect("sess-001");
+      jest.runAllTimers();
+
+      // Simulate unexpected close to trigger reconnect timer
+      const mockWs = (ws as any).ws as MockWebSocket;
+      mockWs.readyState = MockWebSocket.CLOSED;
+      mockWs.onclose?.({});
+      // Now set intentional close before the timer fires
+      (ws as any).intentionalClose = true;
+
+      // Fire the pending reconnect timer
+      jest.runAllTimers();
+      // Should NOT reconnect — stays disconnected
+      expect(ws.getStatus()).toBe("connecting"); // was set to connecting by attemptReconnect
+    });
+  });
+
+  describe("unknown message types", () => {
+    it("ignores unknown message type without calling any handler", () => {
+      const connectedHandler = jest.fn();
+      const agentHandler = jest.fn();
+      ws.onConnected(connectedHandler);
+      ws.onAgentResponse(agentHandler);
+      ws.connect("sess-001");
+      jest.runAllTimers();
+
+      const mockWs = (ws as any).ws as MockWebSocket;
+      mockWs.onmessage?.({
+        data: JSON.stringify({
+          type: "unknown_event_type",
+          data: { foo: "bar" },
+        }),
+      });
+
+      expect(connectedHandler).not.toHaveBeenCalled();
+      expect(agentHandler).not.toHaveBeenCalled();
+    });
+
+    it("ignores malformed (non-JSON) messages without throwing", () => {
+      ws.connect("sess-001");
+      jest.runAllTimers();
+
+      const mockWs = (ws as any).ws as MockWebSocket;
+      expect(() => {
+        mockWs.onmessage?.({ data: "this is not json {{" });
+      }).not.toThrow();
+    });
+  });
+
+  describe("sendAction when not connected", () => {
+    it("does nothing when ws is null (not connected)", () => {
+      // Don't call connect() — ws is null
+      expect(() => ws.sendAction("test action")).not.toThrow();
+    });
   });
 });

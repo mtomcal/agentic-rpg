@@ -489,3 +489,45 @@ class TestGraphParallelToolCalls:
         last_msg = messages[-1]
         assert isinstance(last_msg, AIMessage)
         assert last_msg.content == "Aldric is at The Rusty Flagon."
+
+
+# ---------------------------------------------------------------------------
+# Tests: Tool exception handling
+# ---------------------------------------------------------------------------
+class TestGraphToolException:
+    """Tests for error recovery when a tool raises an exception."""
+
+    async def test_tool_exception_propagates_as_runtime_error(self) -> None:
+        """When a tool raises an exception, the graph propagates the error to the caller."""
+        @tool
+        def failing_tool() -> str:
+            """A tool that always raises an exception."""
+            raise RuntimeError("Tool exploded!")
+
+        responses = [
+            # LLM calls the failing tool
+            AIMessage(
+                content="",
+                tool_calls=[
+                    {
+                        "name": "failing_tool",
+                        "args": {},
+                        "id": "call_fail",
+                        "type": "tool_call",
+                    }
+                ],
+            ),
+        ]
+        model = FakeChatModel(responses)
+        graph = build_agent_graph(
+            tools=[failing_tool],
+            chat_model=model,
+        )
+        initial_state: AgentState = {
+            "messages": [
+                HumanMessage(content="Do the thing."),
+            ],
+        }
+        # LangGraph ToolNode re-raises tool exceptions by default
+        with pytest.raises(RuntimeError, match="Tool exploded!"):
+            await graph.ainvoke(initial_state)

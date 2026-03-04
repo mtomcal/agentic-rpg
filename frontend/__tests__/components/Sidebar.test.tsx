@@ -55,4 +55,22 @@ describe("Sidebar", () => {
     render(<Sidebar gameState={null} />);
     expect(screen.getByText("No character data")).toBeInTheDocument();
   });
+
+  it("renders Inventory tab with null game state shows no inventory data", () => {
+    render(<Sidebar gameState={null} />);
+    fireEvent.click(screen.getByText("Inventory"));
+    expect(screen.getByText("No inventory data")).toBeInTheDocument();
+  });
+
+  it("renders Location tab with null game state shows no location data", () => {
+    render(<Sidebar gameState={null} />);
+    fireEvent.click(screen.getByText("Location"));
+    expect(screen.getByText("No location data")).toBeInTheDocument();
+  });
+
+  it("renders Story tab with null game state shows no story data", () => {
+    render(<Sidebar gameState={null} />);
+    fireEvent.click(screen.getByText("Story"));
+    expect(screen.getByText("No story data")).toBeInTheDocument();
+  });
 });
