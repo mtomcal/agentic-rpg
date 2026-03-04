@@ -2,6 +2,11 @@
  * Tests for lib/api.ts — API client functions.
  */
 
+// Mock the player module before importing api
+jest.mock("@/lib/player", () => ({
+  getPlayerId: jest.fn(() => "test-player-uuid"),
+}));
+
 import {
   getApiUrl,
   createSession,
@@ -59,6 +64,7 @@ describe("createSession", () => {
     expect(url).toContain("/api/v1/sessions");
     expect(options.method).toBe("POST");
     expect(options.headers["Content-Type"]).toBe("application/json");
+    expect(options.headers["X-Player-ID"]).toBe("test-player-uuid");
     const body = JSON.parse(options.body);
     expect(body.genre).toBe("fantasy");
     expect(body.character.name).toBe("Aldric");
@@ -100,8 +106,9 @@ describe("listSessions", () => {
     const result = await listSessions();
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
-    const [url] = mockFetch.mock.calls[0];
+    const [url, options] = mockFetch.mock.calls[0];
     expect(url).toContain("/api/v1/sessions");
+    expect(options.headers["X-Player-ID"]).toBe("test-player-uuid");
     expect(result.sessions).toHaveLength(1);
     expect(result.sessions[0].character_name).toBe("Aldric");
   });
@@ -132,8 +139,9 @@ describe("getSession", () => {
 
     const result = await getSession("sess-001");
 
-    const [url] = mockFetch.mock.calls[0];
+    const [url, options] = mockFetch.mock.calls[0];
     expect(url).toContain("/api/v1/sessions/sess-001");
+    expect(options.headers["X-Player-ID"]).toBe("test-player-uuid");
     expect(result.game_state.character.name).toBe("Aldric");
   });
 
@@ -160,6 +168,7 @@ describe("deleteSession", () => {
     const [url, options] = mockFetch.mock.calls[0];
     expect(url).toContain("/api/v1/sessions/sess-001");
     expect(options.method).toBe("DELETE");
+    expect(options.headers["X-Player-ID"]).toBe("test-player-uuid");
     expect(result.success).toBe(true);
   });
 

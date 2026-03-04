@@ -185,6 +185,25 @@ class TestWebSocketConnect:
             assert data["type"] == "error"
             assert data["data"]["code"] == "missing_player_id"
 
+    def test_connect_with_player_id_query_param(self, ws_client, mock_state_manager):
+        """Connecting with player_id as query param (browser WebSocket fallback) succeeds."""
+        with ws_client.websocket_connect(
+            f"/api/v1/sessions/{SESSION_ID}/ws?player_id={PLAYER_ID}",
+        ) as ws:
+            data = ws.receive_json()
+            assert data["type"] == "connected"
+            assert data["data"]["session_id"] == str(SESSION_ID)
+            assert data["data"]["character"]["name"] == "Aldric"
+
+    def test_connect_with_invalid_query_param_player_id(self, ws_client, mock_state_manager):
+        """Connecting with invalid player_id query param sends error."""
+        with ws_client.websocket_connect(
+            f"/api/v1/sessions/{SESSION_ID}/ws?player_id=not-a-uuid",
+        ) as ws:
+            data = ws.receive_json()
+            assert data["type"] == "error"
+            assert data["data"]["code"] == "invalid_player_id"
+
     def test_connect_invalid_player_id_sends_error(self, ws_client, mock_state_manager):
         """Connecting with a non-UUID X-Player-ID sends error and closes."""
         with ws_client.websocket_connect(

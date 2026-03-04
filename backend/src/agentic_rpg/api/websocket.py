@@ -89,8 +89,8 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str) -> None:
     """Handle a WebSocket connection for a game session."""
     await websocket.accept()
 
-    # -- Validate player ID header --
-    player_id_raw = websocket.headers.get("x-player-id")
+    # -- Validate player ID (header or query param fallback for browser WebSocket) --
+    player_id_raw = websocket.headers.get("x-player-id") or websocket.query_params.get("player_id")
     if not player_id_raw:
         await websocket.send_json(
             _make_message("error", {"code": "missing_player_id", "message": "Missing X-Player-ID header"})

@@ -1,3 +1,5 @@
+import { getPlayerId } from "./player";
+
 type ConnectionStatus = "connecting" | "connected" | "disconnected";
 
 type MessageHandler<T = any> = (data: T) => void;
@@ -31,7 +33,7 @@ export class GameWebSocket {
     this.intentionalClose = false;
     this.status = "connecting";
 
-    const url = `${getWsUrl()}/api/v1/sessions/${sessionId}/ws`;
+    const url = `${getWsUrl()}/api/v1/sessions/${sessionId}/ws?player_id=${getPlayerId()}`;
     this.ws = new WebSocket(url);
 
     this.ws.onopen = () => {

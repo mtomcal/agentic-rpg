@@ -2,6 +2,10 @@
  * Tests for lib/websocket.ts — GameWebSocket client.
  */
 
+jest.mock("@/lib/player", () => ({
+  getPlayerId: jest.fn(() => "ws-test-player-uuid"),
+}));
+
 import { GameWebSocket } from "@/lib/websocket";
 
 // Mock WebSocket
@@ -55,9 +59,12 @@ describe("GameWebSocket", () => {
   });
 
   describe("connect", () => {
-    it("opens WebSocket to correct URL", () => {
+    it("opens WebSocket to correct URL with player_id query param", () => {
       ws.connect("sess-001");
       expect(ws.getStatus()).toBe("connecting");
+      const mockWs = (ws as any).ws as MockWebSocket;
+      expect(mockWs.url).toContain("/api/v1/sessions/sess-001/ws");
+      expect(mockWs.url).toContain("player_id=ws-test-player-uuid");
     });
 
     it("uses NEXT_PUBLIC_WS_URL if set", () => {

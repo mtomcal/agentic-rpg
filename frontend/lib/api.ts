@@ -4,6 +4,15 @@ import type {
   SessionListResponse,
 } from "@/types/api";
 import type { GameState } from "@/types/game";
+import { getPlayerId } from "./player";
+
+/** Returns common headers for all API requests. */
+function apiHeaders(): HeadersInit {
+  return {
+    "Content-Type": "application/json",
+    "X-Player-ID": getPlayerId(),
+  };
+}
 
 /** Returns the base API URL from env or defaults to localhost:8080. */
 export function getApiUrl(): string {
@@ -34,7 +43,7 @@ export async function createSession(
   const body: SessionCreateRequest = { genre, character };
   const response = await fetch(`${getApiUrl()}/api/v1/sessions`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: apiHeaders(),
     body: JSON.stringify(body),
   });
   return handleResponse<SessionCreateResponse>(response);
@@ -42,7 +51,9 @@ export async function createSession(
 
 /** GET /api/v1/sessions — list all sessions. */
 export async function listSessions(): Promise<SessionListResponse> {
-  const response = await fetch(`${getApiUrl()}/api/v1/sessions`);
+  const response = await fetch(`${getApiUrl()}/api/v1/sessions`, {
+    headers: apiHeaders(),
+  });
   return handleResponse<SessionListResponse>(response);
 }
 
@@ -50,7 +61,9 @@ export async function listSessions(): Promise<SessionListResponse> {
 export async function getSession(
   sessionId: string
 ): Promise<{ game_state: GameState }> {
-  const response = await fetch(`${getApiUrl()}/api/v1/sessions/${sessionId}`);
+  const response = await fetch(`${getApiUrl()}/api/v1/sessions/${sessionId}`, {
+    headers: apiHeaders(),
+  });
   return handleResponse<{ game_state: GameState }>(response);
 }
 
@@ -60,6 +73,7 @@ export async function deleteSession(
 ): Promise<{ success: boolean }> {
   const response = await fetch(`${getApiUrl()}/api/v1/sessions/${sessionId}`, {
     method: "DELETE",
+    headers: apiHeaders(),
   });
   return handleResponse<{ success: boolean }>(response);
 }
