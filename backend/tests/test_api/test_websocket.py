@@ -159,10 +159,11 @@ class TestWebSocketConnect:
             data = ws.receive_json()
             assert data["type"] == "connected"
             assert data["data"]["session_id"] == str(SESSION_ID)
-            assert data["data"]["character"]["name"] == "Aldric"
-            assert data["data"]["character"]["profession"] == "Warrior"
-            assert data["data"]["location"]["id"] == "tavern"
-            assert data["data"]["location"]["name"] == "The Rusty Flagon"
+            game_state = data["data"]["game_state"]
+            assert game_state["character"]["name"] == "Aldric"
+            assert game_state["character"]["profession"] == "Warrior"
+            assert game_state["world"]["current_location_id"] == "tavern"
+            assert game_state["world"]["locations"]["tavern"]["name"] == "The Rusty Flagon"
             assert "timestamp" in data
 
     def test_connect_invalid_session_sends_error(self, ws_client, mock_state_manager_no_session):
@@ -193,7 +194,7 @@ class TestWebSocketConnect:
             data = ws.receive_json()
             assert data["type"] == "connected"
             assert data["data"]["session_id"] == str(SESSION_ID)
-            assert data["data"]["character"]["name"] == "Aldric"
+            assert data["data"]["game_state"]["character"]["name"] == "Aldric"
 
     def test_connect_with_invalid_query_param_player_id(self, ws_client, mock_state_manager):
         """Connecting with invalid player_id query param sends error."""
@@ -214,8 +215,8 @@ class TestWebSocketConnect:
             assert data["type"] == "error"
             assert data["data"]["code"] == "invalid_player_id"
 
-    def test_connect_with_nonexistent_location_uses_fallback(self, ws_client):
-        """If current_location_id is not in locations map, uses ID as name."""
+    def test_connect_with_nonexistent_location_sends_full_state(self, ws_client):
+        """If current_location_id is not in locations map, full game state is still sent."""
         gs = _make_game_state()
         gs.world.current_location_id = "unknown_place"
         mock_sm = AsyncMock()
@@ -227,9 +228,8 @@ class TestWebSocketConnect:
             ) as ws:
                 data = ws.receive_json()
                 assert data["type"] == "connected"
-                assert data["data"]["location"]["id"] == "unknown_place"
-                assert data["data"]["location"]["name"] == "unknown_place"
-                assert data["data"]["location"]["description"] == ""
+                game_state = data["data"]["game_state"]
+                assert game_state["world"]["current_location_id"] == "unknown_place"
 
 
 class TestWebSocketPlayerAction:

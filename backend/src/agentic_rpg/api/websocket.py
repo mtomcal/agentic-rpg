@@ -121,22 +121,10 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str) -> None:
 
     # -- Register connection and send connected message --
     hub.register(session_id, websocket)
-    char = game_state.character
-    loc_id = game_state.world.current_location_id
-    loc = game_state.world.locations.get(loc_id)
 
     connected_data = {
         "session_id": str(session_id),
-        "character": {
-            "name": char.name,
-            "profession": char.profession,
-            "level": char.level,
-        },
-        "location": {
-            "id": loc_id,
-            "name": loc.name if loc else loc_id,
-            "description": loc.description if loc else "",
-        },
+        "game_state": json.loads(game_state.model_dump_json()),
     }
     try:
         await websocket.send_json(_make_message("connected", connected_data))
