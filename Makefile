@@ -8,7 +8,7 @@ help:
 	@echo "  make install          Install dependencies for both backend and frontend"
 	@echo ""
 	@echo "Development:"
-	@echo "  make dev              Run backend + frontend in parallel (requires Postgres running)"
+	@echo "  make dev              Start Postgres + backend + frontend (docker compose down on exit)"
 	@echo "  make dev-backend      Run backend dev server only (http://localhost:8080)"
 	@echo "  make dev-frontend     Run frontend dev server only (http://localhost:3000)"
 	@echo "  make db-up            Start Postgres via docker compose"
@@ -57,11 +57,18 @@ db-down:
 
 # Development
 dev:
-	@echo "Starting backend and frontend..."
+	@echo "Starting Postgres, backend, and frontend..."
+	@echo "Postgres: localhost:5432"
 	@echo "Backend:  http://localhost:8080"
 	@echo "Frontend: http://localhost:3000"
 	@echo ""
-	@trap 'kill 0' EXIT; \
+	docker compose up -d postgres
+	@until docker compose exec postgres pg_isready -U postgres > /dev/null 2>&1; do \
+		sleep 1; \
+	done
+	@echo "Postgres is ready"
+	cd backend && uv run alembic upgrade head
+	@trap 'echo ""; echo "Shutting down..."; kill 0; docker compose down' EXIT; \
 	cd backend && uv run uvicorn agentic_rpg.main:app --reload --host 0.0.0.0 --port 8080 & \
 	cd frontend && npm run dev
 
