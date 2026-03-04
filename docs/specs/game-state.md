@@ -16,7 +16,7 @@ class GameState(BaseModel):
     world: World
     story: StoryState
     conversation: Conversation
-    recent_events: list[GameEvent] = []
+    recent_events: list[dict[str, Any]] = []
 ```
 
 ### Session
@@ -153,8 +153,9 @@ All state operations are async, designed to run within Python's asyncio event lo
 ### Load
 
 ```python
-async def load_game_state(pool: asyncpg.Pool, session_id: UUID) -> GameState:
-    row = await pool.fetchrow("SELECT state FROM game_sessions WHERE session_id = $1", session_id)
+# StateManager.load_game_state method
+async def load_game_state(self, session_id: UUID) -> GameState:
+    row = await self.pool.fetchrow("SELECT state FROM game_sessions WHERE session_id = $1", session_id)
     return GameState.model_validate_json(row["state"])
 ```
 
@@ -163,9 +164,10 @@ Load the full game state for a session. This is done at the start of processing 
 ### Save
 
 ```python
-async def save_game_state(pool: asyncpg.Pool, state: GameState) -> None:
+# StateManager.save_game_state method
+async def save_game_state(self, state: GameState) -> None:
     state.session.updated_at = datetime.utcnow()
-    await pool.execute(
+    await self.pool.execute(
         "UPDATE game_sessions SET state = $1, updated_at = $2 WHERE session_id = $3",
         state.model_dump_json(),
         state.session.updated_at,
@@ -199,8 +201,9 @@ Initialize a new game state for a new session:
 ### Delete
 
 ```python
-async def delete_game_state(pool: asyncpg.Pool, session_id: UUID) -> None:
-    await pool.execute("DELETE FROM game_sessions WHERE session_id = $1", session_id)
+# StateManager.delete_game_state method
+async def delete_game_state(self, session_id: UUID) -> None:
+    await self.pool.execute("DELETE FROM game_sessions WHERE session_id = $1", session_id)
 ```
 
 Remove a session's state entirely. Irreversible.

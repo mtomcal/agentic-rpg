@@ -9,7 +9,7 @@ The frontend is a browser-based client that presents the game to the player. It 
 - **Next.js** with TypeScript
 - **Tailwind CSS** for styling
 - **Zustand** for state management
-- **TypeScript types** generated from Pydantic models on the backend (via `pydantic-to-typescript` or `datamodel-code-generator`)
+- **TypeScript types** generated from the backend's OpenAPI schema (via `openapi-typescript`)
 
 ## Screens
 
@@ -33,6 +33,7 @@ The primary play interface. Split into regions:
 
 **Narrative Panel** (main area)
 - Displays agent responses as they stream in (typewriter-style or progressive reveal)
+  > **Note:** Streaming is not yet implemented. Responses are currently delivered as a single complete message.
 - Shows the conversation history (scrollable)
 - Player input field at the bottom (text input + send button)
 
@@ -56,12 +57,12 @@ The layout should be responsive but primarily designed for desktop. Mobile is a 
 
 ## Generated Types
 
-TypeScript types are generated from the backend's Pydantic models and live in `frontend/src/generated/`. These types ensure the frontend and backend stay in sync without manual type maintenance.
+TypeScript types are generated from the backend's OpenAPI schema using `openapi-typescript` and live in `frontend/types/generated.ts`. Run `make generate-types` to regenerate.
 
 ```
 backend/schemas/**/*.py (Pydantic models)
     │
-    └──→ [pydantic-to-typescript / datamodel-code-generator] ──→ frontend/src/generated/*.ts
+    └──→ [openapi-typescript] ──→ frontend/types/generated.ts
 ```
 
 Generated types include all API request/response bodies, game state models, event payloads, and WebSocket message types. The generation runs as part of the build pipeline and CI verifies no drift.
@@ -105,8 +106,10 @@ The client receives and handles these WebSocket messages:
 
 - **agent_response**: Append text to the narrative panel. If streaming, show text as it arrives.
 - **state_update**: Patch the local game state. UI reactively updates (health bar changes, inventory updates, location changes, etc.)
+  > **Status:** Not yet implemented.
 - **error**: Show an error notification to the player.
 - **heartbeat**: Respond with pong to keep the connection alive.
+  > **Status:** Not yet implemented.
 
 ## Error Handling
 

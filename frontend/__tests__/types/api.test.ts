@@ -71,7 +71,7 @@ describe("API Types", () => {
             outline: { premise: "Quest", setting: "Fantasy", beats: [] },
             active_beat_index: 0,
             summary: "",
-            adaptation_history: [],
+            adaptations: [],
           },
           conversation: { history: [], window_size: 20, summary: "" },
           recent_events: [],
@@ -87,12 +87,14 @@ describe("API Types", () => {
       const summary: SessionSummary = {
         session_id: "sess-001",
         status: "active",
+        genre: "medieval fantasy",
         character_name: "Aldric",
         created_at: "2024-01-01T00:00:00Z",
         updated_at: "2024-01-01T01:00:00Z",
       };
       expect(summary.session_id).toBe("sess-001");
       expect(summary.status).toBe("active");
+      expect(summary.genre).toBe("medieval fantasy");
       expect(summary.character_name).toBe("Aldric");
       expect(summary.created_at).toBe("2024-01-01T00:00:00Z");
       expect(summary.updated_at).toBe("2024-01-01T01:00:00Z");
@@ -106,6 +108,7 @@ describe("API Types", () => {
           {
             session_id: "sess-001",
             status: "active",
+            genre: "fantasy",
             character_name: "Aldric",
             created_at: "2024-01-01T00:00:00Z",
             updated_at: "2024-01-01T01:00:00Z",
@@ -182,53 +185,32 @@ describe("API Types", () => {
   });
 
   describe("ConnectedMessage", () => {
-    it("has session_id and game_state", () => {
+    it("has session_id, character, and location", () => {
       const message: ConnectedMessage = {
         type: "connected",
         data: {
           session_id: "sess-001",
-          game_state: {
-            session: {
-              session_id: "sess-001",
-              player_id: "p-001",
-              created_at: "2024-01-01T00:00:00Z",
-              updated_at: "2024-01-01T00:00:00Z",
-              schema_version: 1,
-              status: "active",
-            },
-            character: {
-              id: "c-001",
-              name: "Aldric",
-              profession: "Knight",
-              background: "",
-              stats: {},
-              status_effects: [],
-              level: 1,
-              experience: 0,
-              location_id: "loc-001",
-            },
-            inventory: { items: [], equipment: {}, capacity: null },
-            world: {
-              locations: {},
-              current_location_id: "loc-001",
-              discovered_locations: [],
-              world_flags: {},
-            },
-            story: {
-              outline: { premise: "", setting: "", beats: [] },
-              active_beat_index: 0,
-              summary: "",
-              adaptation_history: [],
-            },
-            conversation: { history: [], window_size: 20, summary: "" },
-            recent_events: [],
+          character: {
+            name: "Aldric",
+            profession: "Knight",
+            level: 1,
+          },
+          location: {
+            id: "loc-001",
+            name: "Village",
+            description: "A small village",
           },
         },
         timestamp: "2024-01-01T00:00:00Z",
       };
       expect(message.type).toBe("connected");
       expect(message.data.session_id).toBe("sess-001");
-      expect(message.data.game_state.character.name).toBe("Aldric");
+      expect(message.data.character.name).toBe("Aldric");
+      expect(message.data.character.profession).toBe("Knight");
+      expect(message.data.character.level).toBe(1);
+      expect(message.data.location.id).toBe("loc-001");
+      expect(message.data.location.name).toBe("Village");
+      expect(message.data.location.description).toBe("A small village");
     });
   });
 

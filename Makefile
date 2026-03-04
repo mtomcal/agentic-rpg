@@ -1,4 +1,4 @@
-.PHONY: help install dev dev-backend dev-frontend test test-unit test-frontend test-db test-all test-coverage lint build clean db-up db-down check-zombies kill-dev
+.PHONY: help install dev dev-backend dev-frontend test test-unit test-frontend test-types test-db test-all test-coverage lint build clean db-up db-down check-zombies kill-dev openapi generate-types
 
 # Default target - show help
 help:
@@ -17,15 +17,20 @@ help:
 	@echo "  make kill-dev         Kill any orphaned dev processes"
 	@echo ""
 	@echo "Testing:"
-	@echo "  make test             Run unit tests (backend + frontend, no DB required)"
+	@echo "  make test             Run unit tests + type generation (backend + frontend, no DB required)"
 	@echo "  make test-unit        Run backend unit tests only (no DB required)"
 	@echo "  make test-frontend    Run frontend tests only"
+	@echo "  make test-types       Export OpenAPI schema and generate TypeScript types"
 	@echo "  make test-db          Start Postgres, run DB-dependent backend tests, stop Postgres"
 	@echo "  make test-all         Run everything: unit tests, DB tests, frontend tests"
 	@echo "  make test-coverage    Run all tests with coverage reports"
 	@echo ""
 	@echo "Code Quality:"
 	@echo "  make lint             Run linters for both backend and frontend"
+	@echo ""
+	@echo "Code Generation:"
+	@echo "  make openapi          Export OpenAPI schema from backend"
+	@echo "  make generate-types   Generate TypeScript types from OpenAPI schema"
 	@echo ""
 	@echo "Build:"
 	@echo "  make build            Build both backend and frontend for production"
@@ -89,8 +94,14 @@ test-frontend:
 	@echo "Running frontend tests..."
 	cd frontend && npm test
 
-# Testing - unit tests (backend + frontend, no DB)
-test: test-unit test-frontend
+# Testing - OpenAPI type generation (no DB required)
+test-types: generate-types
+	@echo "Verifying generated types exist..."
+	@test -f frontend/types/generated.ts || (echo "ERROR: generated types not found" && exit 1)
+	@echo "Generated types OK"
+
+# Testing - unit tests (backend + frontend + type generation, no DB)
+test: test-unit test-frontend test-types
 	@echo ""
 	@echo "All unit tests passed"
 
@@ -161,6 +172,18 @@ build:
 	docker compose build backend
 	@echo ""
 	@echo "Build complete"
+
+# OpenAPI schema export
+openapi:
+	@echo "Exporting OpenAPI schema..."
+	cd backend && uv run python scripts/export_openapi.py
+	@echo "OpenAPI schema exported to backend/openapi.json"
+
+# Generate TypeScript types from OpenAPI schema
+generate-types: openapi
+	@echo "Generating TypeScript types..."
+	cd frontend && npm run generate:types
+	@echo "Types generated at frontend/types/generated.ts"
 
 # Clean
 clean:

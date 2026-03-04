@@ -9,6 +9,7 @@
 
 import type {
   StatusEffect,
+  AdaptationRecord,
   Character,
   Item,
   Inventory,
@@ -28,12 +29,45 @@ describe("Game Types", () => {
     it("has required fields", () => {
       const effect: StatusEffect = {
         name: "Poisoned",
+        effect_type: "debuff",
         duration: 3,
+        magnitude: 5,
         description: "Losing health each turn",
       };
       expect(effect.name).toBe("Poisoned");
+      expect(effect.effect_type).toBe("debuff");
       expect(effect.duration).toBe(3);
+      expect(effect.magnitude).toBe(5);
       expect(effect.description).toBe("Losing health each turn");
+    });
+
+    it("supports all effect_type values", () => {
+      const types: StatusEffect["effect_type"][] = ["buff", "debuff", "condition"];
+      expect(types).toHaveLength(3);
+    });
+
+    it("allows null duration", () => {
+      const effect: StatusEffect = {
+        name: "Blessed",
+        effect_type: "buff",
+        duration: null,
+        magnitude: 10,
+        description: "Permanent blessing",
+      };
+      expect(effect.duration).toBeNull();
+    });
+  });
+
+  describe("AdaptationRecord", () => {
+    it("has required fields", () => {
+      const record: AdaptationRecord = {
+        reason: "Player went off-script",
+        changes: "Added new story beat for unexpected cave",
+        timestamp: "2024-06-15T10:30:00Z",
+      };
+      expect(record.reason).toBe("Player went off-script");
+      expect(record.changes).toBe("Added new story beat for unexpected cave");
+      expect(record.timestamp).toBe("2024-06-15T10:30:00Z");
     });
   });
 
@@ -69,13 +103,14 @@ describe("Game Types", () => {
         profession: "Knight",
         background: "A former soldier",
         stats: { health: 80 },
-        status_effects: [{ name: "Poisoned", duration: 3, description: "Taking damage" }],
+        status_effects: [{ name: "Poisoned", effect_type: "debuff", duration: 3, magnitude: 5, description: "Taking damage" }],
         level: 2,
         experience: 150,
         location_id: "loc-002",
       };
       expect(character.status_effects).toHaveLength(1);
       expect(character.status_effects[0].name).toBe("Poisoned");
+      expect(character.status_effects[0].effect_type).toBe("debuff");
     });
   });
 
@@ -215,8 +250,8 @@ describe("Game Types", () => {
     });
 
     it("supports all status values", () => {
-      const values: StoryBeat["status"][] = ["pending", "active", "resolved", "skipped"];
-      expect(values).toHaveLength(4);
+      const values: StoryBeat["status"][] = ["planned", "active", "resolved", "skipped", "adapted"];
+      expect(values).toHaveLength(5);
     });
   });
 
@@ -243,12 +278,35 @@ describe("Game Types", () => {
         },
         active_beat_index: 0,
         summary: "The adventure begins",
-        adaptation_history: [],
+        adaptations: [],
       };
-      expect(storyState.outline.premise).toBe("Save the kingdom");
+      expect(storyState.outline?.premise).toBe("Save the kingdom");
       expect(storyState.active_beat_index).toBe(0);
       expect(storyState.summary).toBe("The adventure begins");
-      expect(storyState.adaptation_history).toHaveLength(0);
+      expect(storyState.adaptations).toHaveLength(0);
+    });
+
+    it("allows null outline", () => {
+      const storyState: StoryState = {
+        outline: null,
+        active_beat_index: 0,
+        summary: "",
+        adaptations: [],
+      };
+      expect(storyState.outline).toBeNull();
+    });
+
+    it("supports adaptation records", () => {
+      const storyState: StoryState = {
+        outline: null,
+        active_beat_index: 0,
+        summary: "",
+        adaptations: [
+          { reason: "Player went off-script", changes: "Added cave beat", timestamp: "2024-01-01T00:00:00Z" },
+        ],
+      };
+      expect(storyState.adaptations).toHaveLength(1);
+      expect(storyState.adaptations[0].reason).toBe("Player went off-script");
     });
   });
 
@@ -346,7 +404,7 @@ describe("Game Types", () => {
           outline: { premise: "Quest", setting: "Fantasy", beats: [] },
           active_beat_index: 0,
           summary: "",
-          adaptation_history: [],
+          adaptations: [],
         },
         conversation: {
           history: [],
@@ -359,7 +417,7 @@ describe("Game Types", () => {
       expect(gameState.character.name).toBe("Aldric");
       expect(gameState.inventory.items).toHaveLength(0);
       expect(gameState.world.current_location_id).toBe("loc-001");
-      expect(gameState.story.outline.premise).toBe("Quest");
+      expect(gameState.story.outline?.premise).toBe("Quest");
       expect(gameState.conversation.history).toHaveLength(0);
       expect(gameState.recent_events).toHaveLength(0);
     });

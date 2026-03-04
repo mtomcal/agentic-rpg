@@ -20,6 +20,7 @@ export interface SessionCreateResponse {
 export interface SessionSummary {
   session_id: string;
   status: string;
+  genre: string;
   character_name: string;
   created_at: string;
   updated_at: string;
@@ -61,12 +62,21 @@ export interface StateUpdateMessage {
   timestamp: string;
 }
 
-/** Server → client: initial connection message with full game state. */
+/** Server → client: initial connection message with session summary. */
 export interface ConnectedMessage {
   type: "connected";
   data: {
     session_id: string;
-    game_state: GameState;
+    character: {
+      name: string;
+      profession: string;
+      level: number;
+    };
+    location: {
+      id: string;
+      name: string;
+      description: string;
+    };
   };
   timestamp: string;
 }

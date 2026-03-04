@@ -15,8 +15,10 @@ function BeatStatusIcon({ status }: { status: StoryBeat["status"] }) {
       return <span data-testid="beat-status-active" className="text-yellow-400 animate-pulse">&#9679;</span>;
     case "skipped":
       return <span data-testid="beat-status-skipped" className="text-gray-500">&mdash;</span>;
+    case "adapted":
+      return <span data-testid="beat-status-adapted" className="text-blue-400">&#8635;</span>;
     default:
-      return <span data-testid="beat-status-pending" className="text-gray-600">&#9675;</span>;
+      return <span data-testid="beat-status-planned" className="text-gray-600">&#9675;</span>;
   }
 }
 
@@ -25,6 +27,10 @@ export default function StoryPanel({ story }: StoryPanelProps) {
 
   if (!story) {
     return <div className="p-4 text-gray-500 italic">No story data</div>;
+  }
+
+  if (!story.outline) {
+    return <div className="p-4 text-gray-500 italic">No story outline</div>;
   }
 
   const activeBeat = story.outline.beats[story.active_beat_index];

@@ -18,43 +18,18 @@ Internal-only structures (e.g., database query helpers, internal caches) do not 
 
 ## Schema Organization
 
-Schemas are organized as Python modules in a `schemas/` package within the backend:
+Schemas are organized as Python modules in a `models/` package within the backend:
 
 ```
-backend/
-  schemas/
-    __init__.py
-    game_state/
-      __init__.py
-      game_state.py        # Top-level GameState model
-      character.py         # Character, CharacterStats models
-      inventory.py         # Inventory, Item models
-      world.py             # WorldState, Location models
-      conversation.py      # ConversationHistory, Message models
-    story/
-      __init__.py
-      story_outline.py     # StoryOutline model
-      story_beat.py        # StoryBeat model
-      adaptation.py        # AdaptationRecord model
-    events/
-      __init__.py
-      base.py              # BaseEvent envelope model
-      character_events.py  # Character event payload models
-      inventory_events.py  # Inventory event payload models
-      world_events.py      # World event payload models
-      story_events.py      # Story event payload models
-      session_events.py    # Session event payload models
-      agent_events.py      # Agent event payload models
-    api/
-      __init__.py
-      sessions.py          # SessionCreate request/response, SessionList, etc.
-      websocket.py         # PlayerAction, AgentResponse, StateUpdate, Error
-    tools/
-      __init__.py
-      character_tools.py   # Character tool input/output models
-      inventory_tools.py   # Inventory tool input/output models
-      world_tools.py       # World tool input/output models
-      narrative_tools.py   # Narrative tool input/output models
+backend/src/agentic_rpg/models/
+  __init__.py
+  game_state.py       # GameState, Session, Character, StatusEffect, etc.
+  character.py         # Character-related models
+  inventory.py         # Inventory, Item models
+  world.py             # World, Location models
+  story.py             # StoryState, StoryOutline, StoryBeat, AdaptationRecord
+  events.py            # GameEvent, event payload models
+  api.py               # API request/response models
 ```
 
 Each file defines one or more related Pydantic models. All models are re-exported from `__init__.py` files for convenient imports.
@@ -77,17 +52,9 @@ class ItemType(StrEnum):
 class Item(BaseModel):
     """Every model has a docstring for documentation."""
 
-    model_config = ConfigDict(
-        json_schema_extra={
-            "examples": [
-                {"id": "sword_01", "name": "Iron Sword", "type": "weapon", "quantity": 1}
-            ]
-        }
-    )
-
-    id: str = Field(..., description="Unique item identifier")
+    id: UUID = Field(..., description="Unique item identifier")
     name: str = Field(..., description="Display name of the item")
-    type: ItemType = Field(..., description="Category of the item")
+    item_type: ItemType = Field(..., description="Category of the item")
     quantity: int = Field(default=1, ge=1, description="Stack count")
     description: str = Field(default="", description="Flavor text for the item")
 ```
@@ -97,41 +64,35 @@ class Item(BaseModel):
 - **Constraints**: Use Pydantic validators (`ge`, `le`, `min_length`, `pattern`, etc.)
 - **Enums**: Use `StrEnum` for fixed value sets (status effects, item types, event types)
 - **Composition**: Models reference each other directly — Pydantic handles nested validation
-- **Examples**: Models include `json_schema_extra.examples` for clarity and test data generation
 
 ## TypeScript Type Generation
 
 TypeScript types are generated from Pydantic models for the frontend. The generated code:
 
-- Lives in a `generated/` directory in the frontend project
+- Lives at `frontend/types/generated.ts` in the frontend project
 - Includes type definitions (interfaces and enums)
 - Is regenerated on every schema change via a build step
 
 ### Generation Workflow
 
 ```
-backend/schemas/**/*.py (Pydantic models)
+backend/src/agentic_rpg/models/**/*.py (Pydantic models)
     │
-    ├──→ [FastAPI] ──→ OpenAPI spec (automatic, at /openapi.json)
-    │
-    └──→ [pydantic-to-typescript / datamodel-code-generator] ──→ frontend/src/generated/*.ts
+    └──→ [FastAPI] ──→ OpenAPI spec (automatic, at /openapi.json)
+                           │
+                           └──→ [openapi-typescript] ──→ frontend/types/generated.ts
 ```
 
 The generation step runs:
 - As a pre-commit hook (optional, for safety)
 - As part of CI (required, to catch drift)
-- Manually via a script during development (`uv run generate-types`)
+- Manually via a script during development (`make generate-types`)
 
 If the generated TypeScript doesn't match the Pydantic models, CI fails.
 
 ### Generation Tools
 
-Two options for TypeScript generation:
-
-1. **pydantic-to-typescript**: Directly converts Pydantic models to TypeScript interfaces. Simple and purpose-built.
-2. **datamodel-code-generator**: Generates TypeScript from the OpenAPI JSON that FastAPI produces. More flexible, works with any OpenAPI spec.
-
-Either approach produces the same result — TypeScript interfaces matching the Pydantic models.
+**openapi-typescript**: generates TypeScript types from the OpenAPI JSON that FastAPI produces. Run via `make generate-types`, which first exports the OpenAPI schema from the running backend and then runs `openapi-ts` to emit `frontend/types/generated.ts`.
 
 ## Validation
 

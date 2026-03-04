@@ -101,7 +101,7 @@ class StatChangedPayload(EventPayload):
     stat_name: str
     old_value: float
     new_value: float
-    reason: str
+    reason: str = ""
 ```
 
 The payload registry provides:
@@ -113,6 +113,8 @@ The payload registry provides:
 
 If an event is emitted with no registered payload model, it should be rejected. This ensures all events are well-defined.
 
+> **Implementation note:** The `EventPayloadRegistry.validate_payload()` method exists but is not currently called by `EventBus.publish()`. Payload validation is therefore not enforced at publish time.
+
 ### Event Bus
 
 The event bus is an in-process async pub/sub mechanism built on Python's `asyncio`:
@@ -120,12 +122,14 @@ The event bus is an in-process async pub/sub mechanism built on Python's `asynci
 ```python
 class EventBus:
     async def publish(self, event: GameEvent) -> None: ...
+    def publish_sync(self, event: GameEvent) -> None: ...
     def subscribe(self, event_type: str, callback: Callable[[GameEvent], Awaitable[None]]) -> str: ...
     def unsubscribe(self, subscription_id: str) -> None: ...
     async def get_history(self, event_type: str | None = None, session_id: UUID | None = None, limit: int = 100) -> list[GameEvent]: ...
 ```
 
 - **Publish**: Emit a validated event to all subscribers of that event type. Subscribers are invoked concurrently using `asyncio.gather`.
+- **Publish (sync)**: A synchronous variant of publish for use in non-async contexts. Schedules subscriber invocations without awaiting them.
 - **Subscribe**: Register an async callback for a specific event type. Returns a subscription ID.
 - **Unsubscribe**: Remove a subscription by ID.
 - **History**: The bus keeps a bounded in-memory history of recent events (configurable size, default 1000) using a `collections.deque`.

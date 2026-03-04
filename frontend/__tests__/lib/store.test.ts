@@ -36,7 +36,7 @@ const mockGameState: GameState = {
     outline: { premise: "Quest", setting: "Fantasy", beats: [] },
     active_beat_index: 0,
     summary: "",
-    adaptation_history: [],
+    adaptations: [],
   },
   conversation: { history: [], window_size: 20, summary: "" },
   recent_events: [],

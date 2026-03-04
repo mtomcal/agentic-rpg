@@ -43,7 +43,7 @@ Create a new game session.
 @router.post("/sessions", response_model=SessionCreateResponse)
 async def create_session(
     request: SessionCreateRequest,
-    engine: GameEngine = Depends(get_game_engine),
+    state_manager: StateManager = Depends(get_state_manager),
     player: Player = Depends(get_current_player),
 ) -> SessionCreateResponse:
     ...
@@ -93,8 +93,8 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
         yield session
 
-async def get_game_engine(db: AsyncSession = Depends(get_db)) -> GameEngine:
-    return GameEngine(db=db)
+async def get_state_manager(db: AsyncSession = Depends(get_db)) -> StateManager:
+    return StateManager(db=db)
 
 async def get_current_player(
     player_id: str = Header(alias="X-Player-ID"),
@@ -102,7 +102,7 @@ async def get_current_player(
     ...
 ```
 
-Dependencies are composable — `get_game_engine` depends on `get_db`, and FastAPI resolves the chain automatically.
+Dependencies are composable — `get_state_manager` depends on `get_db`, and FastAPI resolves the chain automatically.
 
 ## WebSocket Protocol
 
@@ -115,7 +115,7 @@ The client connects to `ws://host/api/v1/sessions/{session_id}/ws`.
 async def websocket_endpoint(
     websocket: WebSocket,
     session_id: str,
-    engine: GameEngine = Depends(get_game_engine),
+    state_manager: StateManager = Depends(get_state_manager),
 ):
     await websocket.accept()
     ...
@@ -202,6 +202,8 @@ A game state change occurred (event-driven).
 }
 ```
 
+> **Status:** Not yet implemented. State updates are not currently pushed to the client via WebSocket.
+
 **error**
 Something went wrong.
 ```json
@@ -221,8 +223,8 @@ Sent on initial connection.
   "type": "connected",
   "data": {
     "session_id": "...",
-    "character": { ... },
-    "location": { ... }
+    "character": { "name": "...", "profession": "...", "level": 1 },
+    "location": { "id": "...", "name": "...", "description": "..." }
   }
 }
 ```
@@ -230,7 +232,11 @@ Sent on initial connection.
 **heartbeat**
 Keep-alive ping/pong. Server sends a ping every 30 seconds. Client must respond with a pong. If no pong within 10 seconds, the server closes the connection.
 
+> **Status:** Not yet implemented. Heartbeat ping/pong is planned but not yet active.
+
 ## Response Streaming
+
+> **Status:** Not yet implemented. Agent responses are currently sent as a single complete message, not streamed in chunks.
 
 Agent responses can be long. The server streams the response to the client in chunks as the LLM generates tokens:
 
@@ -292,6 +298,8 @@ async def game_error_handler(request: Request, exc: GameError):
         content={"error": {"code": exc.code, "message": exc.message}},
     )
 ```
+
+**Implementation note:** The current implementation uses `HTTPException(detail={"error": "message"})` for most errors, which produces `{"detail": {"error": "message"}}`. The structured `GameError` exception handler described above is planned but not yet fully implemented.
 
 Standard error codes:
 - `session_not_found` — Session ID doesn't exist

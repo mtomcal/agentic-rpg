@@ -9,13 +9,13 @@ const mockStory: StoryState = {
     beats: [
       { summary: "Arrive at the village", location: "Village", trigger_conditions: [], key_elements: [], player_objectives: [], possible_outcomes: [], flexibility: "flexible", status: "resolved" },
       { summary: "Meet the mysterious stranger", location: "Tavern", trigger_conditions: [], key_elements: [], player_objectives: [], possible_outcomes: [], flexibility: "flexible", status: "active" },
-      { summary: "Enter the dungeon", location: "Dungeon", trigger_conditions: [], key_elements: [], player_objectives: [], possible_outcomes: [], flexibility: "fixed", status: "pending" },
-      { summary: "Defeat the boss", location: "Throne Room", trigger_conditions: [], key_elements: [], player_objectives: [], possible_outcomes: [], flexibility: "optional", status: "pending" },
+      { summary: "Enter the dungeon", location: "Dungeon", trigger_conditions: [], key_elements: [], player_objectives: [], possible_outcomes: [], flexibility: "fixed", status: "planned" },
+      { summary: "Defeat the boss", location: "Throne Room", trigger_conditions: [], key_elements: [], player_objectives: [], possible_outcomes: [], flexibility: "optional", status: "planned" },
     ],
   },
   active_beat_index: 1,
   summary: "The hero arrived at the village and learned of dark forces.",
-  adaptation_history: [],
+  adaptations: [],
 };
 
 describe("StoryPanel", () => {
@@ -62,9 +62,9 @@ describe("StoryPanel", () => {
     expect(activeIndicators.length).toBe(1);
   });
 
-  it("shows pending status for future beats", () => {
+  it("shows planned status for future beats", () => {
     render(<StoryPanel story={mockStory} />);
-    const pendingIndicators = screen.getAllByTestId("beat-status-pending");
+    const pendingIndicators = screen.getAllByTestId("beat-status-planned");
     expect(pendingIndicators.length).toBe(2);
   });
 });

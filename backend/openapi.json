@@ -1,0 +1,1522 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Agentic RPG",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/sessions": {
+      "post": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Create Session",
+        "description": "Create a new game session.",
+        "operationId": "create_session_api_v1_sessions_post",
+        "parameters": [
+          {
+            "name": "x-player-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Player-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionCreateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "List Sessions",
+        "description": "List all sessions for the current player.",
+        "operationId": "list_sessions_api_v1_sessions_get",
+        "parameters": [
+          {
+            "name": "x-player-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Player-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Get Session",
+        "description": "Get the full game state for a session.",
+        "operationId": "get_session_api_v1_sessions__session_id__get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "x-player-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Player-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Delete Session",
+        "description": "Delete a game session.",
+        "operationId": "delete_session_api_v1_sessions__session_id__delete",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "x-player-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Player-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/state": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Get State Summary",
+        "description": "Get a lightweight summary of the current game state.",
+        "operationId": "get_state_summary_api_v1_sessions__session_id__state_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "x-player-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Player-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StateSummaryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/inventory": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Get Inventory",
+        "description": "Get the character's inventory for a session.",
+        "operationId": "get_inventory_api_v1_sessions__session_id__inventory_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "x-player-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Player-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/history": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Get History",
+        "description": "Get paginated conversation history for a session.",
+        "operationId": "get_history_api_v1_sessions__session_id__history_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "x-player-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Player-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "description": "Health check endpoint.",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Health Check Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AdaptationRecord": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "description": "Why the outline was adapted"
+          },
+          "changes": {
+            "type": "string",
+            "title": "Changes",
+            "description": "What changed in the outline"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp",
+            "description": "When the adaptation occurred"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason",
+          "changes"
+        ],
+        "title": "AdaptationRecord",
+        "description": "Record of a story outline adaptation."
+      },
+      "BeatFlexibility": {
+        "type": "string",
+        "enum": [
+          "fixed",
+          "flexible",
+          "optional"
+        ],
+        "title": "BeatFlexibility",
+        "description": "How much a beat can change."
+      },
+      "BeatStatus": {
+        "type": "string",
+        "enum": [
+          "planned",
+          "active",
+          "resolved",
+          "skipped",
+          "adapted"
+        ],
+        "title": "BeatStatus",
+        "description": "Lifecycle status of a story beat."
+      },
+      "BeatSummary": {
+        "properties": {
+          "summary": {
+            "type": "string",
+            "title": "Summary",
+            "description": "Beat description"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location",
+            "description": "Where this beat takes place"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Beat lifecycle status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "summary",
+          "location",
+          "status"
+        ],
+        "title": "BeatSummary",
+        "description": "Lightweight story beat info for the state summary."
+      },
+      "Character": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "Unique character identifier"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Character display name"
+          },
+          "profession": {
+            "type": "string",
+            "title": "Profession",
+            "description": "Character class or profession"
+          },
+          "background": {
+            "type": "string",
+            "title": "Background",
+            "description": "Character backstory",
+            "default": ""
+          },
+          "stats": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Stats",
+            "description": "Character stats (health, energy, money, etc.)"
+          },
+          "status_effects": {
+            "items": {
+              "$ref": "#/components/schemas/StatusEffect"
+            },
+            "type": "array",
+            "title": "Status Effects",
+            "description": "Active status effects"
+          },
+          "level": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Level",
+            "description": "Character level",
+            "default": 1
+          },
+          "experience": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Experience",
+            "description": "Experience points",
+            "default": 0
+          },
+          "location_id": {
+            "type": "string",
+            "title": "Location Id",
+            "description": "Current location ID",
+            "default": "start"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "profession"
+        ],
+        "title": "Character",
+        "description": "A player character in the game."
+      },
+      "CharacterCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Character name"
+          },
+          "profession": {
+            "type": "string",
+            "title": "Profession",
+            "description": "Character class or profession"
+          },
+          "background": {
+            "type": "string",
+            "title": "Background",
+            "description": "Character backstory",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "profession"
+        ],
+        "title": "CharacterCreate",
+        "description": "Character creation parameters."
+      },
+      "CharacterSummary": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Character display name"
+          },
+          "profession": {
+            "type": "string",
+            "title": "Profession",
+            "description": "Character class or profession"
+          },
+          "level": {
+            "type": "integer",
+            "title": "Level",
+            "description": "Character level"
+          },
+          "health": {
+            "type": "number",
+            "title": "Health",
+            "description": "Current health"
+          },
+          "max_health": {
+            "type": "number",
+            "title": "Max Health",
+            "description": "Maximum health"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "profession",
+          "level",
+          "health",
+          "max_health"
+        ],
+        "title": "CharacterSummary",
+        "description": "Lightweight character info for the state summary."
+      },
+      "Conversation": {
+        "properties": {
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/Message"
+            },
+            "type": "array",
+            "title": "History",
+            "description": "Ordered list of messages"
+          },
+          "window_size": {
+            "type": "integer",
+            "title": "Window Size",
+            "description": "Messages to include in agent context",
+            "default": 20
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary",
+            "description": "Summary of older conversation history",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "Conversation",
+        "description": "Conversation history for a game session."
+      },
+      "DeleteResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success",
+            "description": "Whether the operation succeeded"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success"
+        ],
+        "title": "DeleteResponse",
+        "description": "Response for delete operations."
+      },
+      "GameState": {
+        "properties": {
+          "session": {
+            "$ref": "#/components/schemas/Session",
+            "description": "Session metadata"
+          },
+          "character": {
+            "$ref": "#/components/schemas/Character",
+            "description": "Player character"
+          },
+          "inventory": {
+            "$ref": "#/components/schemas/Inventory",
+            "description": "Character inventory"
+          },
+          "world": {
+            "$ref": "#/components/schemas/World",
+            "description": "World state"
+          },
+          "story": {
+            "$ref": "#/components/schemas/StoryState",
+            "description": "Story state"
+          },
+          "conversation": {
+            "$ref": "#/components/schemas/Conversation",
+            "description": "Conversation history"
+          },
+          "recent_events": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Recent Events",
+            "description": "Recent game events"
+          }
+        },
+        "type": "object",
+        "title": "GameState",
+        "description": "The complete game state for a session."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HistoryResponse": {
+        "properties": {
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/Message"
+            },
+            "type": "array",
+            "title": "Messages",
+            "description": "Conversation messages"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Total number of messages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "messages",
+          "total"
+        ],
+        "title": "HistoryResponse",
+        "description": "Response for GET /sessions/{session_id}/history."
+      },
+      "Inventory": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "Items in inventory"
+          },
+          "equipment": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Equipment",
+            "description": "Equipment slots mapped to item IDs"
+          },
+          "capacity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capacity",
+            "description": "Max inventory size, None for unlimited"
+          }
+        },
+        "type": "object",
+        "title": "Inventory",
+        "description": "A character's inventory."
+      },
+      "InventoryResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "Items in inventory"
+          },
+          "equipment": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Equipment",
+            "description": "Equipment slots"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "equipment"
+        ],
+        "title": "InventoryResponse",
+        "description": "Response for GET /sessions/{session_id}/inventory."
+      },
+      "Item": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "Unique item identifier"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Display name of the item"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "description": "Flavor text for the item",
+            "default": ""
+          },
+          "item_type": {
+            "$ref": "#/components/schemas/ItemType",
+            "description": "Category of the item"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Quantity",
+            "description": "Stack count",
+            "default": 1
+          },
+          "properties": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Properties",
+            "description": "Genre-specific item properties"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "item_type"
+        ],
+        "title": "Item",
+        "description": "An item in the game."
+      },
+      "ItemType": {
+        "type": "string",
+        "enum": [
+          "weapon",
+          "armor",
+          "consumable",
+          "key",
+          "misc"
+        ],
+        "title": "ItemType",
+        "description": "Types of items."
+      },
+      "Location": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique location identifier"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Display name of the location"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "description": "Location description text",
+            "default": ""
+          },
+          "connections": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Connections",
+            "description": "IDs of connected locations"
+          },
+          "npcs_present": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Npcs Present",
+            "description": "IDs of NPCs at this location"
+          },
+          "items_present": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Items Present",
+            "description": "IDs of items at this location"
+          },
+          "visited": {
+            "type": "boolean",
+            "title": "Visited",
+            "description": "Whether the player has visited",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "Location",
+        "description": "A location in the game world."
+      },
+      "LocationSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Location identifier"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Display name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "description": "Location description"
+          },
+          "connections": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Connections",
+            "description": "Connected location IDs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "connections"
+        ],
+        "title": "LocationSummary",
+        "description": "Lightweight location info for the state summary."
+      },
+      "Message": {
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/MessageRole",
+            "description": "Who sent the message"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content",
+            "description": "Message text"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp",
+            "description": "When the message was sent"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metadata",
+            "description": "Additional message metadata"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "Message",
+        "description": "A message in the conversation history."
+      },
+      "MessageRole": {
+        "type": "string",
+        "enum": [
+          "player",
+          "agent",
+          "system"
+        ],
+        "title": "MessageRole",
+        "description": "Role of a conversation message sender."
+      },
+      "Session": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id",
+            "description": "Unique session identifier"
+          },
+          "player_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Player Id",
+            "description": "Player who owns this session"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "When the session was created"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "When the state was last modified"
+          },
+          "schema_version": {
+            "type": "integer",
+            "title": "Schema Version",
+            "description": "State schema version",
+            "default": 1
+          },
+          "status": {
+            "$ref": "#/components/schemas/SessionStatus",
+            "description": "Session status",
+            "default": "active"
+          }
+        },
+        "type": "object",
+        "title": "Session",
+        "description": "Session metadata."
+      },
+      "SessionCreateRequest": {
+        "properties": {
+          "genre": {
+            "type": "string",
+            "title": "Genre",
+            "description": "Game genre (e.g. fantasy, sci-fi)"
+          },
+          "character": {
+            "$ref": "#/components/schemas/CharacterCreate",
+            "description": "Character creation data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "genre",
+          "character"
+        ],
+        "title": "SessionCreateRequest",
+        "description": "Request body for creating a new game session."
+      },
+      "SessionCreateResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id",
+            "description": "ID of the created session"
+          },
+          "game_state": {
+            "$ref": "#/components/schemas/GameState",
+            "description": "Initial game state"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "game_state"
+        ],
+        "title": "SessionCreateResponse",
+        "description": "Response for session creation."
+      },
+      "SessionDetailResponse": {
+        "properties": {
+          "game_state": {
+            "$ref": "#/components/schemas/GameState",
+            "description": "Full game state"
+          }
+        },
+        "type": "object",
+        "required": [
+          "game_state"
+        ],
+        "title": "SessionDetailResponse",
+        "description": "Response for getting session details."
+      },
+      "SessionListResponse": {
+        "properties": {
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/SessionSummary"
+            },
+            "type": "array",
+            "title": "Sessions",
+            "description": "List of session summaries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sessions"
+        ],
+        "title": "SessionListResponse",
+        "description": "Response for listing sessions."
+      },
+      "SessionStatus": {
+        "type": "string",
+        "enum": [
+          "active",
+          "paused",
+          "completed",
+          "abandoned"
+        ],
+        "title": "SessionStatus",
+        "description": "Status of a game session."
+      },
+      "SessionSummary": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id",
+            "description": "Session ID"
+          },
+          "character_name": {
+            "type": "string",
+            "title": "Character Name",
+            "description": "Character name"
+          },
+          "genre": {
+            "type": "string",
+            "title": "Genre",
+            "description": "Game genre",
+            "default": ""
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Session status"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At",
+            "description": "Last update timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "character_name",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SessionSummary",
+        "description": "Summary of a game session for listing."
+      },
+      "StateSummaryResponse": {
+        "properties": {
+          "character": {
+            "$ref": "#/components/schemas/CharacterSummary",
+            "description": "Character summary"
+          },
+          "location": {
+            "$ref": "#/components/schemas/LocationSummary",
+            "description": "Current location summary"
+          },
+          "story_beat": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BeatSummary"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Active story beat summary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "character",
+          "location"
+        ],
+        "title": "StateSummaryResponse",
+        "description": "Response for GET /sessions/{session_id}/state."
+      },
+      "StatusEffect": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Name of the status effect"
+          },
+          "effect_type": {
+            "$ref": "#/components/schemas/StatusEffectType",
+            "description": "Category of the effect"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "description": "What this effect does",
+            "default": ""
+          },
+          "duration": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration",
+            "description": "Remaining turns, None if permanent"
+          },
+          "magnitude": {
+            "type": "number",
+            "title": "Magnitude",
+            "description": "Strength of the effect",
+            "default": 1.0
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "effect_type"
+        ],
+        "title": "StatusEffect",
+        "description": "An active status effect on a character."
+      },
+      "StatusEffectType": {
+        "type": "string",
+        "enum": [
+          "buff",
+          "debuff",
+          "condition"
+        ],
+        "title": "StatusEffectType",
+        "description": "Types of status effects."
+      },
+      "StoryBeat": {
+        "properties": {
+          "summary": {
+            "type": "string",
+            "title": "Summary",
+            "description": "What should happen at this point (1-2 sentences)"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location",
+            "description": "Where this beat takes place",
+            "default": "any"
+          },
+          "trigger_conditions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Trigger Conditions",
+            "description": "Conditions that activate this beat"
+          },
+          "key_elements": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Key Elements",
+            "description": "NPCs, items, or events that should be present"
+          },
+          "player_objectives": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Player Objectives",
+            "description": "What the player can/should do"
+          },
+          "possible_outcomes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Possible Outcomes",
+            "description": "Ways this beat might resolve"
+          },
+          "flexibility": {
+            "$ref": "#/components/schemas/BeatFlexibility",
+            "description": "How much this beat can change",
+            "default": "flexible"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BeatStatus",
+            "description": "Current lifecycle status",
+            "default": "planned"
+          }
+        },
+        "type": "object",
+        "required": [
+          "summary"
+        ],
+        "title": "StoryBeat",
+        "description": "A planned narrative moment in the story arc."
+      },
+      "StoryOutline": {
+        "properties": {
+          "premise": {
+            "type": "string",
+            "title": "Premise",
+            "description": "2-3 sentence summary of the overall story"
+          },
+          "setting": {
+            "type": "string",
+            "title": "Setting",
+            "description": "World, tone, genre description"
+          },
+          "beats": {
+            "items": {
+              "$ref": "#/components/schemas/StoryBeat"
+            },
+            "type": "array",
+            "title": "Beats",
+            "description": "Ordered sequence of narrative beats"
+          }
+        },
+        "type": "object",
+        "required": [
+          "premise",
+          "setting"
+        ],
+        "title": "StoryOutline",
+        "description": "The story outline for a game session."
+      },
+      "StoryState": {
+        "properties": {
+          "outline": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StoryOutline"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The story outline"
+          },
+          "active_beat_index": {
+            "type": "integer",
+            "title": "Active Beat Index",
+            "description": "Index of the current active beat",
+            "default": 0
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary",
+            "description": "Condensed history of resolved beats",
+            "default": ""
+          },
+          "adaptations": {
+            "items": {
+              "$ref": "#/components/schemas/AdaptationRecord"
+            },
+            "type": "array",
+            "title": "Adaptations",
+            "description": "History of outline adaptations"
+          }
+        },
+        "type": "object",
+        "title": "StoryState",
+        "description": "Full story state for a game session."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "World": {
+        "properties": {
+          "locations": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Location"
+            },
+            "type": "object",
+            "title": "Locations",
+            "description": "Map of location ID to location data"
+          },
+          "current_location_id": {
+            "type": "string",
+            "title": "Current Location Id",
+            "description": "Player's current location ID",
+            "default": "start"
+          },
+          "discovered_locations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true,
+            "title": "Discovered Locations",
+            "description": "Set of discovered location IDs"
+          },
+          "world_flags": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "World Flags",
+            "description": "Key-value flags for world state changes"
+          }
+        },
+        "type": "object",
+        "title": "World",
+        "description": "The game world state."
+      }
+    }
+  }
+}

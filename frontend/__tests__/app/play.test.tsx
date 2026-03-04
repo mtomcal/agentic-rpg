@@ -100,7 +100,7 @@ describe("PlayPage", () => {
           character: { id: "c1", name: "Test", profession: "Knight", background: "", stats: {}, status_effects: [], level: 1, experience: 0, location_id: "loc-001" },
           inventory: { items: [], equipment: {}, capacity: null },
           world: { locations: {}, current_location_id: "loc-001", discovered_locations: [], world_flags: {} },
-          story: { outline: { premise: "", setting: "", beats: [] }, active_beat_index: 0, summary: "", adaptation_history: [] },
+          story: { outline: { premise: "", setting: "", beats: [] }, active_beat_index: 0, summary: "", adaptations: [] },
           conversation: { history: [], window_size: 20, summary: "" },
           recent_events: [],
         },

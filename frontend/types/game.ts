@@ -1,8 +1,17 @@
 /** Status effect on a character (buff, debuff, condition). */
 export interface StatusEffect {
   name: string;
-  duration: number;
+  effect_type: "buff" | "debuff" | "condition";
+  duration: number | null;
+  magnitude: number;
   description: string;
+}
+
+/** Record of a story adaptation. */
+export interface AdaptationRecord {
+  reason: string;
+  changes: string;
+  timestamp: string;
 }
 
 /** Player character. Matches backend Character Pydantic model. */
@@ -63,7 +72,7 @@ export interface StoryBeat {
   player_objectives: string[];
   possible_outcomes: string[];
   flexibility: "fixed" | "flexible" | "optional";
-  status: "pending" | "active" | "resolved" | "skipped";
+  status: "planned" | "active" | "resolved" | "skipped" | "adapted";
 }
 
 /** The overall story outline generated at session start. */
@@ -75,10 +84,10 @@ export interface StoryOutline {
 
 /** Story progression state. */
 export interface StoryState {
-  outline: StoryOutline;
+  outline: StoryOutline | null;
   active_beat_index: number;
   summary: string;
-  adaptation_history: any[];
+  adaptations: AdaptationRecord[];
 }
 
 /** A single message in the conversation history. */

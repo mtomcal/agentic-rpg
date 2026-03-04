@@ -7,7 +7,7 @@ const mockGameState: GameState = {
   character: { id: "c1", name: "Aldric", profession: "Knight", background: "", stats: { health: 100, max_health: 100, energy: 50, max_energy: 50, money: 10 }, status_effects: [], level: 1, experience: 0, location_id: "loc-001" },
   inventory: { items: [{ id: "i1", name: "Sword", description: "", item_type: "weapon", quantity: 1, properties: {} }], equipment: {}, capacity: null },
   world: { locations: { "loc-001": { id: "loc-001", name: "Village", description: "A small village", connections: [], npcs_present: [], items_present: [], visited: true } }, current_location_id: "loc-001", discovered_locations: ["loc-001"], world_flags: {} },
-  story: { outline: { premise: "Save the kingdom", setting: "Fantasy", beats: [{ summary: "Begin", location: "Village", trigger_conditions: [], key_elements: [], player_objectives: [], possible_outcomes: [], flexibility: "flexible", status: "active" }] }, active_beat_index: 0, summary: "", adaptation_history: [] },
+  story: { outline: { premise: "Save the kingdom", setting: "Fantasy", beats: [{ summary: "Begin", location: "Village", trigger_conditions: [], key_elements: [], player_objectives: [], possible_outcomes: [], flexibility: "flexible", status: "active" }] }, active_beat_index: 0, summary: "", adaptations: [] },
   conversation: { history: [], window_size: 20, summary: "" },
   recent_events: [],
 };
