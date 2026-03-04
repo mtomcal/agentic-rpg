@@ -15,13 +15,36 @@ See `docs/prd.md` for full PRD, `docs/roadmap.md` for build plan, `docs/specs/` 
 
 ## Commands
 
-### Backend
+### Makefile (preferred)
+
+```bash
+make help                        # Show all available commands
+make install                     # Install backend + frontend dependencies
+make dev                         # Start all services via docker compose (live reload)
+make dev-backend                 # Start backend + Postgres only
+make dev-frontend                # Start frontend only
+make test                        # Run unit tests (backend + frontend, no DB required)
+make test-unit                   # Run backend unit tests only (no DB)
+make test-frontend               # Run frontend tests only
+make test-db                     # Start Postgres, run DB-dependent tests, stop Postgres
+make test-all                    # Run everything: unit + frontend + DB tests
+make test-coverage               # Run all tests with coverage reports
+make lint                        # Run linters (ruff + frontend build check)
+make build                       # Build frontend + backend Docker image
+make clean                       # Remove build artifacts
+make db-up                       # Start Postgres via docker compose
+make db-down                     # Stop Postgres
+make check-zombies               # Check for orphaned dev processes on ports 8080/3000/5432
+make kill-dev                    # Kill orphaned dev processes
+```
+
+### Backend (direct)
 
 ```bash
 cd backend/
 uv sync                          # Install dependencies
 uv run pytest                    # Run all tests
-uv run pytest --cov=agentic_rpg --cov-report=term-missing  # Run with coverage
+uv run pytest --cov=agentic_rpg --cov-branch --cov-report=term-missing  # Run with coverage
 uv run pytest tests/test_tools/  # Run specific test directory
 uv run uvicorn agentic_rpg.main:app --reload --host 0.0.0.0 --port 8080  # Dev server
 uv run alembic upgrade head      # Run migrations
@@ -29,14 +52,14 @@ uv run ruff check src/           # Lint
 uv run ruff format src/          # Format
 ```
 
-### Frontend
+### Frontend (direct)
 
 ```bash
 cd frontend/
 npm install                      # Install dependencies
 npm run dev                      # Dev server (port 3000)
 npm run build                    # Production build
-npm run test                     # Run tests
+npm run test                     # Run tests (Jest)
 npm run test -- --coverage       # Run with coverage
 ```
 
@@ -44,7 +67,7 @@ npm run test -- --coverage       # Run with coverage
 
 ```bash
 docker compose build             # Build all services
-docker compose up                # Start all services
+docker compose up                # Start all services (backend:8080, frontend:3000, postgres:5432)
 docker compose up -d postgres    # Start just Postgres
 docker compose down              # Stop all services
 ```
@@ -52,21 +75,42 @@ docker compose down              # Stop all services
 ## Project Structure
 
 ```
-backend/src/agentic_rpg/
-  main.py, config.py, db.py
-  api/        — FastAPI routes, handlers, WebSocket, middleware
-  agent/      — LangGraph state graph, context assembly, prompts
-  tools/      — LangChain tool registry and game tools
-  state/      — Game state manager (asyncpg CRUD)
-  events/     — Event bus, payload schemas, persistence
-  models/     — All Pydantic models (game state, API, events)
-  llm/        — LLM client factory
-
-frontend/
-  app/        — Next.js App Router pages
-  components/ — React components (ChatPanel, Sidebar, etc.)
-  lib/        — API client, WebSocket client, state store
-  types/      — TypeScript type definitions
+/                                   Root (Makefile, docker-compose.yml, .env.example, .nvmrc)
+├── docs/
+│   ├── specs/                      System specs (agent, story, state, events, tools, api, frontend, schema)
+│   ├── tech/                       Tech decisions (python, nextjs, postgres, langchain, docker, websockets, pydantic)
+│   └── plans/                      Implementation plans per Ralph
+│
+├── backend/                        (pyproject.toml, alembic.ini, Dockerfile)
+│   ├── alembic/versions/           Database migrations
+│   ├── src/agentic_rpg/
+│   │   ├── api/                    FastAPI routes, handlers, WebSocket, middleware, dependencies
+│   │   ├── agent/                  LangGraph graph, context assembly, prompts, story engine
+│   │   ├── tools/                  Tool registry + game tools (character, inventory, world, narrative)
+│   │   ├── state/                  Game state manager (asyncpg CRUD)
+│   │   ├── events/                 Event bus, schemas, persistence
+│   │   ├── models/                 Pydantic models (game_state, character, inventory, world, story, events, api)
+│   │   └── llm/                    LLM client factory + types
+│   └── tests/
+│       ├── test_models/            Pydantic model validation
+│       ├── test_state/             State manager CRUD (needs Postgres)
+│       ├── test_events/            Event bus, schemas, persistence
+│       ├── test_agent/             Graph, context, prompt, story engine (mock LLM)
+│       ├── test_tools/             Tool registry + all game tools
+│       ├── test_llm/               LLM client tests
+│       └── test_api/               Health, sessions, game state, WebSocket, wiring, fixtures smoke
+│
+└── frontend/                       (package.json, jest.config.js, tsconfig.json, tailwind.config.ts, Dockerfile)
+    ├── app/                        Next.js App Router pages (home, new, play/[sessionId])
+    ├── components/                 React components (CharacterPanel, ChatPanel, InventoryPanel, LocationPanel, Sidebar, StoryPanel)
+    ├── lib/                        API client, WebSocket client, Zustand store
+    ├── types/                      TypeScript type definitions (api, game)
+    └── __tests__/                  Jest test suite
+        ├── app/                    Page tests
+        ├── components/             Component tests
+        ├── lib/                    Client + store tests
+        ├── types/                  Type validation tests
+        └── integration/            WebSocket + store integration
 ```
 
 ---
@@ -111,7 +155,7 @@ Run: `uv run pytest --cov=agentic_rpg --cov-branch --cov-report=term-missing`
 
 ### Frontend Coverage Configuration
 
-Coverage is configured via `jest.config.js` or `vitest.config.ts`:
+Coverage is configured via `jest.config.js`:
 
 ```js
 coverageThreshold: {
@@ -179,17 +223,29 @@ expect(true).toBe(true);        // meaningless
 **Backend** (pytest):
 - `tests/test_models/` — Pydantic model validation tests
 - `tests/test_state/` — State manager CRUD tests (needs Postgres)
-- `tests/test_events/` — Event bus + persistence tests
-- `tests/test_tools/` — LangChain tool unit tests
-- `tests/test_agent/` — Agent graph, context, story engine tests (mock LLM)
-- `tests/test_api/` — HTTP endpoint + WebSocket integration tests
+- `tests/test_events/` — Event bus (test_bus.py), schemas (test_schemas.py), persistence (test_persistence.py)
+- `tests/test_tools/` — Tool registry + game tool unit tests (character, inventory, world, narrative)
+- `tests/test_agent/` — Graph, context, prompt, story engine tests (mock LLM)
+- `tests/test_llm/` — LLM client factory tests
+- `tests/test_api/` — Health, sessions, game state, WebSocket, wiring, fixtures smoke tests
 - `tests/conftest.py` — Shared fixtures (DB pool, sample data, mock LLM, event bus)
 
-**Frontend** (Jest or Vitest):
-- `__tests__/` or colocated `*.test.tsx` files
-- Test components with React Testing Library
-- Test lib/ modules with unit tests
-- Mock WebSocket and fetch for API tests
+**Frontend** (Jest + React Testing Library):
+- `__tests__/app/` — Page tests (home, layout, new, play)
+- `__tests__/components/` — All 6 component tests
+- `__tests__/lib/` — API client, Zustand store, WebSocket client tests
+- `__tests__/types/` — Type validation tests
+- `__tests__/integration/` — WebSocket + store integration tests
+
+### Test Categories (Makefile)
+
+Tests are split by DB dependency:
+
+- **Unit tests** (`make test-unit`, no DB): test_models, test_tools, test_agent, test_llm, test_events/test_bus.py, test_events/test_schemas.py, test_api/test_health.py, test_api/test_websocket.py
+- **DB tests** (`make test-db`, needs Postgres): test_state, test_events/test_persistence.py, test_api/test_sessions.py, test_api/test_game_state.py, test_api/test_fixtures_smoke.py, test_api/test_wiring.py
+- **Frontend tests** (`make test-frontend`): All `__tests__/` files via Jest
+
+Use `make test` for quick feedback (unit + frontend), `make test-all` for full suite.
 
 ### What to Test
 
