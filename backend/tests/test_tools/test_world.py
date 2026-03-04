@@ -51,6 +51,14 @@ class TestGetCurrentLocationTool:
         result = tool.invoke({})
         assert result["visited"] is True
 
+    def test_returns_fallback_when_location_not_in_map(self, tool_game_state, tool_event_bus):
+        tool_game_state.world.current_location_id = "nonexistent"
+        tool = _make(GetCurrentLocationTool, tool_game_state, tool_event_bus)
+        result = tool.invoke({})
+        assert result["id"] == "nonexistent"
+        assert result["description"] == "Unknown location"
+        assert result["connections"] == []
+
 
 # ===========================================================================
 # GetConnectionsTool
@@ -77,6 +85,12 @@ class TestGetConnectionsTool:
         conn_map = {c["id"]: c["visited"] for c in result["connections"]}
         assert conn_map["market"] is True
         assert conn_map["alley"] is False
+
+    def test_returns_empty_when_location_not_in_map(self, tool_game_state, tool_event_bus):
+        tool_game_state.world.current_location_id = "nonexistent"
+        tool = _make(GetConnectionsTool, tool_game_state, tool_event_bus)
+        result = tool.invoke({})
+        assert result["connections"] == []
 
     def test_single_connection_returns_one(self, tool_game_state, tool_event_bus):
         # alley only connects to tavern
@@ -215,6 +229,21 @@ class TestInspectEnvironmentTool:
         result = inspect_tool.invoke({})
         assert result["name"] == "Market Square"
         assert result["description"] == "A bustling marketplace"
+
+    def test_inspect_returns_fallback_when_location_not_found(self, tool_game_state, tool_event_bus):
+        tool_game_state.world.current_location_id = "void"
+        tool = _make(InspectEnvironmentTool, tool_game_state, tool_event_bus)
+        result = tool.invoke({})
+        assert result["id"] == "void"
+        assert result["description"] == "Unknown location"
+        assert result["focus"] is None
+
+    def test_inspect_fallback_preserves_focus(self, tool_game_state, tool_event_bus):
+        tool_game_state.world.current_location_id = "void"
+        tool = _make(InspectEnvironmentTool, tool_game_state, tool_event_bus)
+        result = tool.invoke({"focus": "door"})
+        assert result["focus"] == "door"
+        assert result["description"] == "Unknown location"
 
 
 # ===========================================================================

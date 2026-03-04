@@ -38,16 +38,21 @@ export default function PlayPage() {
     });
 
     ws.onAgentResponse((data: any) => {
+      if (data.text) {
+        appendAgentChunk(data.text);
+      }
       if (data.is_complete) {
         finalizeAgentMessage();
         setAgentThinking(false);
-      } else {
-        appendAgentChunk(data.text);
       }
     });
 
     ws.onStateUpdate((data: any) => {
       useGameStore.getState().updateFromStateEvent(data);
+    });
+
+    ws.onStateSnapshot((data: any) => {
+      setGameState(data.game_state);
     });
 
     ws.onError((data: any) => {

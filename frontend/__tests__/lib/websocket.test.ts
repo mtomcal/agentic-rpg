@@ -203,6 +203,35 @@ describe("GameWebSocket", () => {
       });
     });
 
+    it("calls onStateSnapshot for state_snapshot messages", () => {
+      const handler = jest.fn();
+      ws.onStateSnapshot(handler);
+      ws.connect("sess-001");
+      jest.runAllTimers();
+
+      const mockWs = (ws as any).ws as MockWebSocket;
+      mockWs.onmessage?.({
+        data: JSON.stringify({
+          type: "state_snapshot",
+          data: {
+            game_state: {
+              character: { name: "Aldric" },
+              world: { current_location_id: "tavern" },
+            },
+          },
+          timestamp: "2024-01-01T00:00:00Z",
+        }),
+      });
+
+      expect(handler).toHaveBeenCalledTimes(1);
+      expect(handler).toHaveBeenCalledWith({
+        game_state: {
+          character: { name: "Aldric" },
+          world: { current_location_id: "tavern" },
+        },
+      });
+    });
+
     it("calls onClose when connection closes", () => {
       const handler = jest.fn();
       ws.onClose(handler);

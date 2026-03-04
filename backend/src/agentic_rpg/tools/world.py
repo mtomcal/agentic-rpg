@@ -71,7 +71,9 @@ class GetCurrentLocationTool(BaseTool):
     event_bus: EventBus
 
     def _run(self, **kwargs: Any) -> dict:
-        loc = self.game_state.world.locations[self.game_state.world.current_location_id]
+        loc = self.game_state.world.locations.get(self.game_state.world.current_location_id)
+        if loc is None:
+            return {"id": self.game_state.world.current_location_id, "name": self.game_state.world.current_location_id, "description": "Unknown location", "connections": []}
         return loc.model_dump()
 
 
@@ -88,7 +90,9 @@ class GetConnectionsTool(BaseTool):
     event_bus: EventBus
 
     def _run(self, **kwargs: Any) -> dict:
-        current = self.game_state.world.locations[self.game_state.world.current_location_id]
+        current = self.game_state.world.locations.get(self.game_state.world.current_location_id)
+        if current is None:
+            return {"connections": []}
         connections = []
         for conn_id in current.connections:
             if conn_id in self.game_state.world.locations:
@@ -153,7 +157,9 @@ class InspectEnvironmentTool(BaseTool):
     event_bus: EventBus
 
     def _run(self, focus: str | None = None) -> dict:
-        loc = self.game_state.world.locations[self.game_state.world.current_location_id]
+        loc = self.game_state.world.locations.get(self.game_state.world.current_location_id)
+        if loc is None:
+            return {"id": self.game_state.world.current_location_id, "name": self.game_state.world.current_location_id, "description": "Unknown location", "focus": focus}
         result = loc.model_dump()
         result["focus"] = focus
         return result

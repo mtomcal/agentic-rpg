@@ -4,7 +4,7 @@ import pytest
 from langchain_core.tools import BaseTool, tool
 from pydantic import BaseModel, Field
 
-from agentic_rpg.tools.registry import ToolRegistry
+from agentic_rpg.tools.registry import ToolRegistry, build_all_tools
 
 
 # ---------------------------------------------------------------------------
@@ -153,3 +153,30 @@ class TestToolCategories:
     def test_categories_empty_registry(self):
         registry = ToolRegistry()
         assert registry.categories == []
+
+
+class TestBuildAllTools:
+    """Tests for the build_all_tools factory function."""
+
+    def test_returns_expected_tool_count(self, tool_game_state, tool_event_bus):
+        tools = build_all_tools(tool_game_state, tool_event_bus)
+        assert len(tools) == 24
+
+    def test_all_tools_are_base_tools(self, tool_game_state, tool_event_bus):
+        tools = build_all_tools(tool_game_state, tool_event_bus)
+        for t in tools:
+            assert isinstance(t, BaseTool), f"{t.name} is not a BaseTool"
+
+    def test_contains_tools_from_all_categories(self, tool_game_state, tool_event_bus):
+        tools = build_all_tools(tool_game_state, tool_event_bus)
+        names = {t.name for t in tools}
+        # One tool from each category
+        assert "get_character" in names
+        assert "get_inventory" in names
+        assert "get_current_location" in names
+        assert "get_story_outline" in names
+
+    def test_tools_have_game_state_reference(self, tool_game_state, tool_event_bus):
+        tools = build_all_tools(tool_game_state, tool_event_bus)
+        for t in tools:
+            assert t.game_state is tool_game_state

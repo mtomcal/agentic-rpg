@@ -29,6 +29,7 @@ beforeEach(() => {
     onConnected: jest.fn((cb) => { handlers.connected = cb; }),
     onAgentResponse: jest.fn((cb) => { handlers.agent_response = cb; }),
     onStateUpdate: jest.fn((cb) => { handlers.state_update = cb; }),
+    onStateSnapshot: jest.fn((cb) => { handlers.state_snapshot = cb; }),
     onError: jest.fn((cb) => { handlers.error = cb; }),
     onClose: jest.fn((cb) => { handlers.close = cb; }),
     getStatus: jest.fn().mockReturnValue("connected"),
@@ -126,6 +127,29 @@ describe("WebSocket ↔ Store Integration", () => {
     });
 
     expect(useGameStore.getState().gameState?.character.stats.health).toBe(75);
+  });
+
+  it("state_snapshot → replaces gameState with new snapshot", () => {
+    render(<PlayPage />);
+
+    act(() => {
+      handlers.connected({ game_state: mockGameState });
+    });
+
+    const updatedState = {
+      ...mockGameState,
+      character: { ...mockGameState.character, name: "SnapshotHero", stats: { health: 42, max_health: 100 } },
+      world: { ...mockGameState.world, current_location_id: "dungeon" },
+    };
+
+    act(() => {
+      handlers.state_snapshot({ game_state: updatedState });
+    });
+
+    const state = useGameStore.getState();
+    expect(state.gameState?.character.name).toBe("SnapshotHero");
+    expect(state.gameState?.character.stats.health).toBe(42);
+    expect(state.gameState?.world.current_location_id).toBe("dungeon");
   });
 
   it("close → sets connectionStatus to disconnected", () => {

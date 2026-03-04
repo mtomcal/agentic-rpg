@@ -24,6 +24,7 @@ export class GameWebSocket {
     connected: [] as MessageHandler[],
     agent_response: [] as MessageHandler[],
     state_update: [] as MessageHandler[],
+    state_snapshot: [] as MessageHandler[],
     error: [] as MessageHandler[],
     close: [] as MessageHandler[],
   };
@@ -103,6 +104,10 @@ export class GameWebSocket {
 
   onStateUpdate(handler: MessageHandler): void {
     this.handlers.state_update.push(handler);
+  }
+
+  onStateSnapshot(handler: MessageHandler): void {
+    this.handlers.state_snapshot.push(handler);
   }
 
   onError(handler: MessageHandler): void {

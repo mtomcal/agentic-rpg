@@ -236,11 +236,13 @@ class TestWebSocketPlayerAction:
     """Tests for handling player_action messages."""
 
     def test_player_action_triggers_agent_response(self, ws_client, mock_state_manager):
-        """Sending a player_action produces an agent_response."""
+        """Sending a player_action produces an agent_response and state_snapshot."""
         mock_graph = AsyncMock()
         mock_graph.ainvoke = AsyncMock(return_value={
             "messages": [MagicMock(content="The tavern is quiet tonight.")]
         })
+
+        mock_context = {"messages": [MagicMock()], "game_state": {}, "system_prompt": ""}
 
         with patch(
             "agentic_rpg.api.websocket.build_agent_graph",
@@ -248,6 +250,9 @@ class TestWebSocketPlayerAction:
         ), patch(
             "agentic_rpg.api.websocket.get_tools_and_model",
             return_value=([], MagicMock()),
+        ), patch(
+            "agentic_rpg.api.websocket.assemble_context",
+            return_value=mock_context,
         ):
             with ws_client.websocket_connect(
                 f"/api/v1/sessions/{SESSION_ID}/ws",
@@ -265,6 +270,15 @@ class TestWebSocketPlayerAction:
                 assert response["type"] == "agent_response"
                 assert response["data"]["text"] == "The tavern is quiet tonight."
                 assert response["data"]["is_complete"] is True
+
+                # State snapshot is sent after agent response
+                snapshot = ws.receive_json()
+                assert snapshot["type"] == "state_snapshot"
+                assert snapshot["data"]["game_state"]["character"]["name"] == "Aldric"
+                assert snapshot["data"]["game_state"]["world"]["current_location_id"] == "tavern"
+
+                # Conversation history was persisted
+                mock_state_manager.save_game_state.assert_called_once()
 
     def test_player_action_missing_text_returns_error(self, ws_client, mock_state_manager):
         """Player action without text field returns an error."""
@@ -286,12 +300,17 @@ class TestWebSocketPlayerAction:
         mock_graph = AsyncMock()
         mock_graph.ainvoke = AsyncMock(side_effect=RuntimeError("LLM exploded"))
 
+        mock_context = {"messages": [MagicMock()], "game_state": {}, "system_prompt": ""}
+
         with patch(
             "agentic_rpg.api.websocket.build_agent_graph",
             return_value=mock_graph,
         ), patch(
             "agentic_rpg.api.websocket.get_tools_and_model",
             return_value=([], MagicMock()),
+        ), patch(
+            "agentic_rpg.api.websocket.assemble_context",
+            return_value=mock_context,
         ):
             with ws_client.websocket_connect(
                 f"/api/v1/sessions/{SESSION_ID}/ws",

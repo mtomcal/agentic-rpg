@@ -27,6 +27,7 @@ beforeEach(() => {
     onConnected: jest.fn(),
     onAgentResponse: jest.fn(),
     onStateUpdate: jest.fn(),
+    onStateSnapshot: jest.fn(),
     onError: jest.fn(),
     onClose: jest.fn(),
     getStatus: jest.fn().mockReturnValue("connected"),
@@ -57,11 +58,36 @@ describe("PlayPage", () => {
 
   it("registers all message handlers", () => {
     render(<PlayPage />);
-    expect(wsInstance.onConnected).toHaveBeenCalled();
-    expect(wsInstance.onAgentResponse).toHaveBeenCalled();
-    expect(wsInstance.onStateUpdate).toHaveBeenCalled();
-    expect(wsInstance.onError).toHaveBeenCalled();
-    expect(wsInstance.onClose).toHaveBeenCalled();
+    expect(wsInstance.onConnected).toHaveBeenCalledWith(expect.any(Function));
+    expect(wsInstance.onAgentResponse).toHaveBeenCalledWith(expect.any(Function));
+    expect(wsInstance.onStateUpdate).toHaveBeenCalledWith(expect.any(Function));
+    expect(wsInstance.onStateSnapshot).toHaveBeenCalledWith(expect.any(Function));
+    expect(wsInstance.onError).toHaveBeenCalledWith(expect.any(Function));
+    expect(wsInstance.onClose).toHaveBeenCalledWith(expect.any(Function));
+  });
+
+  it("onStateSnapshot handler updates gameState in store", () => {
+    render(<PlayPage />);
+
+    const snapshotHandler = wsInstance.onStateSnapshot.mock.calls[0][0];
+    act(() => {
+      snapshotHandler({
+        game_state: {
+          session: { session_id: "sess-001", player_id: "p1", created_at: "", updated_at: "", schema_version: 1, status: "active" },
+          character: { id: "c1", name: "UpdatedHero", profession: "Mage", background: "", stats: { health: 50, max_health: 100 }, status_effects: [], level: 2, experience: 500, location_id: "market" },
+          inventory: { items: [], equipment: {}, capacity: null },
+          world: { locations: {}, current_location_id: "market", discovered_locations: [], world_flags: {} },
+          story: { outline: { premise: "", setting: "", beats: [] }, active_beat_index: 0, summary: "", adaptations: [] },
+          conversation: { history: [], window_size: 20, summary: "" },
+          recent_events: [],
+        },
+      });
+    });
+
+    const gameState = useGameStore.getState().gameState;
+    expect(gameState?.character.name).toBe("UpdatedHero");
+    expect(gameState?.character.stats.health).toBe(50);
+    expect(gameState?.world.current_location_id).toBe("market");
   });
 
   it("renders ChatPanel component", () => {

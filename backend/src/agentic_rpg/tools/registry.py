@@ -4,6 +4,99 @@ from __future__ import annotations
 
 from langchain_core.tools import BaseTool
 
+from agentic_rpg.events.bus import EventBus
+from agentic_rpg.models.game_state import GameState
+from agentic_rpg.tools.character import (
+    AddStatusEffectTool,
+    GetCharacterTool,
+    RemoveStatusEffectTool,
+    UpdateEnergyTool,
+    UpdateHealthTool,
+    UpdateMoneyTool,
+)
+from agentic_rpg.tools.inventory import (
+    AddItemTool,
+    EquipItemTool,
+    GetInventoryTool,
+    RemoveItemTool,
+    UnequipItemTool,
+    UseItemTool,
+)
+from agentic_rpg.tools.narrative import (
+    AdaptOutlineTool,
+    AddBeatTool,
+    AdvanceBeatTool,
+    GetStoryOutlineTool,
+    ResolveBeatTool,
+    UpdateStorySummaryTool,
+)
+from agentic_rpg.tools.world import (
+    AddLocationTool,
+    GetConnectionsTool,
+    GetCurrentLocationTool,
+    InspectEnvironmentTool,
+    MoveCharacterTool,
+    SetWorldFlagTool,
+)
+
+
+def build_all_tools(
+    game_state: GameState, event_bus: EventBus
+) -> list[BaseTool]:
+    """Instantiate all game tools and return them ready for LLM binding.
+
+    Creates a ToolRegistry, registers every tool from all 4 categories
+    (character, inventory, world, narrative), and returns the tool list.
+    """
+    registry = ToolRegistry()
+    kwargs = {"game_state": game_state, "event_bus": event_bus}
+
+    # Character tools
+    for cls in (
+        GetCharacterTool,
+        UpdateHealthTool,
+        UpdateEnergyTool,
+        UpdateMoneyTool,
+        AddStatusEffectTool,
+        RemoveStatusEffectTool,
+    ):
+        registry.register(cls(**kwargs), category="character")
+
+    # Inventory tools
+    for cls in (
+        GetInventoryTool,
+        AddItemTool,
+        RemoveItemTool,
+        EquipItemTool,
+        UnequipItemTool,
+        UseItemTool,
+    ):
+        registry.register(cls(**kwargs), category="inventory")
+
+    # World tools
+    for cls in (
+        GetCurrentLocationTool,
+        GetConnectionsTool,
+        MoveCharacterTool,
+        InspectEnvironmentTool,
+        AddLocationTool,
+        SetWorldFlagTool,
+    ):
+        registry.register(cls(**kwargs), category="world")
+
+    # Narrative tools
+    for cls in (
+        GetStoryOutlineTool,
+        ResolveBeatTool,
+        AdvanceBeatTool,
+        AdaptOutlineTool,
+        AddBeatTool,
+        UpdateStorySummaryTool,
+    ):
+        registry.register(cls(**kwargs), category="narrative")
+
+    return registry.get_tools_for_binding()
+
 
 class ToolRegistry:
     """Central catalog of all LangChain tools available to the agent.

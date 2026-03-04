@@ -10,8 +10,12 @@ from uuid import UUID
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
+from agentic_rpg.agent.context import assemble_context
 from agentic_rpg.agent.graph import build_agent_graph
+from agentic_rpg.events.bus import EventBus
+from agentic_rpg.models.game_state import GameState, Message, MessageRole
 from agentic_rpg.state.manager import StateManager
+from agentic_rpg.tools.registry import build_all_tools
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +70,9 @@ def _make_message(msg_type: str, data: dict) -> dict:
     }
 
 
-def get_tools_and_model() -> tuple[list[Any], Any]:
+def get_tools_and_model(
+    game_state: GameState, event_bus: EventBus
+) -> tuple[list[Any], Any]:
     """Return tools and chat model for building the agent graph.
 
     This is a thin helper that the WebSocket handler calls.
@@ -75,8 +81,9 @@ def get_tools_and_model() -> tuple[list[Any], Any]:
     # Lazy imports to avoid circular dependency issues
     from agentic_rpg.llm.client import create_chat_model
 
+    tools = build_all_tools(game_state, event_bus)
     model = create_chat_model()
-    return [], model
+    return tools, model
 
 
 # ---------------------------------------------------------------------------
@@ -164,14 +171,37 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str) -> None:
                     )
                     continue
 
-                # Run the agent
+                # Run the agent with full game context
                 try:
-                    tools, model = get_tools_and_model()
+                    event_bus = EventBus()
+                    tools, model = get_tools_and_model(game_state, event_bus)
+                    context = assemble_context(game_state, text)
                     graph = build_agent_graph(tools, model)
-                    result = await graph.ainvoke({"messages": [{"role": "user", "content": text}]})
+                    result = await graph.ainvoke({"messages": context["messages"]})
                     agent_text = result["messages"][-1].content
+
+                    # Persist conversation history
+                    now = datetime.now(timezone.utc)
+                    game_state.conversation.history.append(
+                        Message(role=MessageRole.player, content=text, timestamp=now)
+                    )
+                    game_state.conversation.history.append(
+                        Message(role=MessageRole.agent, content=agent_text, timestamp=now)
+                    )
+
+                    # Save updated game state (tools may have mutated it)
+                    await state_manager.save_game_state(game_state)
+
+                    # Send agent response
                     await websocket.send_json(
                         _make_message("agent_response", {"text": agent_text, "is_complete": True})
+                    )
+
+                    # Send full state snapshot so frontend stays in sync
+                    await websocket.send_json(
+                        _make_message("state_snapshot", {
+                            "game_state": json.loads(game_state.model_dump_json()),
+                        })
                     )
                 except Exception:
                     logger.exception("Agent error for session %s", session_id)
