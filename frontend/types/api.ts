@@ -38,52 +38,12 @@ export interface WSMessage {
   timestamp: string;
 }
 
-/** Client → server: player action. */
-export interface PlayerActionMessage {
-  type: "player_action";
-  data: { text: string };
-  timestamp: string;
-}
-
-/** Server → client: agent narrative response (may be streamed). */
-export interface AgentResponseMessage {
-  type: "agent_response";
-  data: { text: string; is_complete: boolean };
-  timestamp: string;
-}
-
-/** Server → client: game state change. */
-export interface StateUpdateMessage {
-  type: "state_update";
-  data: {
-    event_type: string;
-    changes: Record<string, any>;
-  };
-  timestamp: string;
-}
-
-/** Server → client: initial connection message with session summary. */
-export interface ConnectedMessage {
-  type: "connected";
-  data: {
-    session_id: string;
-    character: {
-      name: string;
-      profession: string;
-      level: number;
-    };
-    location: {
-      id: string;
-      name: string;
-      description: string;
-    };
-  };
-  timestamp: string;
-}
-
-/** Server → client: error message. */
-export interface ErrorMessage {
-  type: "error";
-  data: { code: string; message: string };
-  timestamp: string;
-}
+export type {
+  PlayerActionMessage,
+  AgentResponseMessage,
+  StateUpdateMessage,
+  StateSnapshotMessage,
+  ConnectedMessage,
+  ErrorMessage,
+  InboundMessage,
+} from "@/lib/ws-schemas";

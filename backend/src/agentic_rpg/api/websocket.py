@@ -9,10 +9,12 @@ from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from pydantic import ValidationError
 
 from agentic_rpg.agent.context import assemble_context
 from agentic_rpg.agent.graph import build_agent_graph
 from agentic_rpg.events.bus import EventBus
+from agentic_rpg.models.api import PlayerActionData
 from agentic_rpg.models.game_state import GameState, Message, MessageRole
 from agentic_rpg.state.manager import StateManager
 from agentic_rpg.tools.registry import build_all_tools
@@ -164,7 +166,14 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str) -> None:
                 continue
 
             elif msg_type == "player_action":
-                text = msg_data.get("text") if isinstance(msg_data, dict) else None
+                try:
+                    action = PlayerActionData.model_validate(msg_data)
+                except (ValidationError, Exception):
+                    await websocket.send_json(
+                        _make_message("error", {"code": "invalid_request", "message": "Missing text field"})
+                    )
+                    continue
+                text = action.text.strip()
                 if not text:
                     await websocket.send_json(
                         _make_message("error", {"code": "invalid_request", "message": "Missing text field"})

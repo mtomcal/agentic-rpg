@@ -185,32 +185,22 @@ describe("API Types", () => {
   });
 
   describe("ConnectedMessage", () => {
-    it("has session_id, character, and location", () => {
+    it("has session_id and game_state", () => {
       const message: ConnectedMessage = {
         type: "connected",
         data: {
           session_id: "sess-001",
-          character: {
-            name: "Aldric",
-            profession: "Knight",
-            level: 1,
-          },
-          location: {
-            id: "loc-001",
-            name: "Village",
-            description: "A small village",
+          game_state: {
+            character: { name: "Aldric" },
+            world: { current_location_id: "tavern" },
           },
         },
         timestamp: "2024-01-01T00:00:00Z",
       };
       expect(message.type).toBe("connected");
       expect(message.data.session_id).toBe("sess-001");
-      expect(message.data.character.name).toBe("Aldric");
-      expect(message.data.character.profession).toBe("Knight");
-      expect(message.data.character.level).toBe(1);
-      expect(message.data.location.id).toBe("loc-001");
-      expect(message.data.location.name).toBe("Village");
-      expect(message.data.location.description).toBe("A small village");
+      expect(message.data.game_state.character.name).toBe("Aldric");
+      expect(message.data.game_state.world.current_location_id).toBe("tavern");
     });
   });
 

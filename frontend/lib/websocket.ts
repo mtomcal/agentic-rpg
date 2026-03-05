@@ -1,4 +1,5 @@
 import { getPlayerId } from "./player";
+import { InboundMessageSchema, PlayerActionMessageSchema } from "./ws-schemas";
 
 type ConnectionStatus = "connecting" | "connected" | "disconnected";
 
@@ -43,16 +44,26 @@ export class GameWebSocket {
     };
 
     this.ws.onmessage = (event: MessageEvent) => {
+      let raw: unknown;
       try {
-        const message = JSON.parse(event.data);
-        const type = message.type as keyof typeof this.handlers;
-        if (type in this.handlers && type !== "close") {
-          for (const handler of this.handlers[type]) {
-            handler(message.data);
-          }
-        }
+        raw = JSON.parse(event.data);
       } catch {
-        // ignore malformed messages
+        return; // non-JSON silently dropped
+      }
+
+      const result = InboundMessageSchema.safeParse(raw);
+      if (!result.success) {
+        for (const handler of this.handlers.error) {
+          handler({ code: "invalid_message", message: "Received malformed server message" });
+        }
+        return;
+      }
+
+      const { type, data } = result.data;
+      if (type in this.handlers && type !== "close") {
+        for (const handler of this.handlers[type as keyof typeof this.handlers]) {
+          handler(data);
+        }
       }
     };
 
@@ -86,12 +97,10 @@ export class GameWebSocket {
 
   sendAction(text: string): void {
     if (!this.ws) return;
-    const message = {
-      type: "player_action",
-      data: { text },
-      timestamp: new Date().toISOString(),
-    };
-    this.ws.send(JSON.stringify(message));
+    const message = { type: "player_action" as const, data: { text }, timestamp: new Date().toISOString() };
+    const result = PlayerActionMessageSchema.safeParse(message);
+    if (!result.success) return; // drop invalid outbound
+    this.ws.send(JSON.stringify(result.data));
   }
 
   onConnected(handler: MessageHandler): void {

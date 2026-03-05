@@ -295,6 +295,20 @@ class TestWebSocketPlayerAction:
             assert error["data"]["code"] == "invalid_request"
             assert "text" in error["data"]["message"].lower()
 
+    def test_player_action_whitespace_only_text_returns_error(self, ws_client, mock_state_manager):
+        """Player action with whitespace-only text returns an error."""
+        with ws_client.websocket_connect(
+            f"/api/v1/sessions/{SESSION_ID}/ws",
+            headers={"X-Player-ID": str(PLAYER_ID)},
+        ) as ws:
+            connected = ws.receive_json()
+            assert connected["type"] == "connected"
+
+            ws.send_json({"type": "player_action", "data": {"text": "   "}})
+            error = ws.receive_json()
+            assert error["type"] == "error"
+            assert error["data"]["code"] == "invalid_request"
+
     def test_agent_error_sends_error_message(self, ws_client, mock_state_manager):
         """If the agent graph raises, client gets an error message."""
         mock_graph = AsyncMock()

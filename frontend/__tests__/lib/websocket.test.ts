@@ -306,11 +306,13 @@ describe("GameWebSocket", () => {
   });
 
   describe("unknown message types", () => {
-    it("ignores unknown message type without calling any handler", () => {
+    it("fires onError for unknown message types", () => {
       const connectedHandler = jest.fn();
       const agentHandler = jest.fn();
+      const errorHandler = jest.fn();
       ws.onConnected(connectedHandler);
       ws.onAgentResponse(agentHandler);
+      ws.onError(errorHandler);
       ws.connect("sess-001");
       jest.runAllTimers();
 
@@ -319,11 +321,16 @@ describe("GameWebSocket", () => {
         data: JSON.stringify({
           type: "unknown_event_type",
           data: { foo: "bar" },
+          timestamp: "2024-01-01T00:00:00Z",
         }),
       });
 
       expect(connectedHandler).not.toHaveBeenCalled();
       expect(agentHandler).not.toHaveBeenCalled();
+      expect(errorHandler).toHaveBeenCalledWith({
+        code: "invalid_message",
+        message: "Received malformed server message",
+      });
     });
 
     it("ignores malformed (non-JSON) messages without throwing", () => {
@@ -334,6 +341,51 @@ describe("GameWebSocket", () => {
       expect(() => {
         mockWs.onmessage?.({ data: "this is not json {{" });
       }).not.toThrow();
+    });
+  });
+
+  describe("Zod validation", () => {
+    it("fires onError for malformed server messages (missing required fields)", () => {
+      const errorHandler = jest.fn();
+      ws.onError(errorHandler);
+      ws.connect("sess-001");
+      jest.runAllTimers();
+
+      const mockWs = (ws as any).ws as MockWebSocket;
+      mockWs.onmessage?.({
+        data: JSON.stringify({
+          type: "agent_response",
+          data: { text: "hello" },  // missing is_complete
+          timestamp: "2024-01-01T00:00:00Z",
+        }),
+      });
+
+      expect(errorHandler).toHaveBeenCalledWith({
+        code: "invalid_message",
+        message: "Received malformed server message",
+      });
+    });
+
+    it("silently drops non-JSON messages without firing onError", () => {
+      const errorHandler = jest.fn();
+      ws.onError(errorHandler);
+      ws.connect("sess-001");
+      jest.runAllTimers();
+
+      const mockWs = (ws as any).ws as MockWebSocket;
+      mockWs.onmessage?.({ data: "not json {{{" });
+
+      expect(errorHandler).not.toHaveBeenCalled();
+    });
+
+    it("does not send when text is empty string", () => {
+      ws.connect("sess-001");
+      jest.runAllTimers();
+
+      ws.sendAction("");
+
+      const mockWs = (ws as any).ws as MockWebSocket;
+      expect(mockWs.send).not.toHaveBeenCalled();
     });
   });
 

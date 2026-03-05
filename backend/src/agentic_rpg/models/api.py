@@ -149,3 +149,41 @@ class HistoryResponse(BaseModel):
 
     messages: list[Message] = Field(description="Conversation messages")
     total: int = Field(description="Total number of messages")
+
+
+# ---------------------------------------------------------------------------
+# WebSocket message data models
+# ---------------------------------------------------------------------------
+
+
+class PlayerActionData(BaseModel):
+    """WS inbound: data payload for player_action messages."""
+
+    text: str = Field(description="Player's text input", min_length=1)
+
+
+class ConnectedData(BaseModel):
+    """WS outbound: data payload for connected messages."""
+
+    session_id: str = Field(description="Session identifier")
+    game_state: GameState = Field(description="Full game state")
+
+
+class AgentResponseData(BaseModel):
+    """WS outbound: data payload for agent_response messages."""
+
+    text: str = Field(description="Agent narrative text")
+    is_complete: bool = Field(description="Whether response is complete")
+
+
+class StateSnapshotData(BaseModel):
+    """WS outbound: data payload for state_snapshot messages."""
+
+    game_state: GameState = Field(description="Full game state snapshot")
+
+
+class ErrorData(BaseModel):
+    """WS outbound: data payload for error messages."""
+
+    code: str = Field(description="Error code")
+    message: str = Field(description="Error message")
