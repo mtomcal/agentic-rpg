@@ -60,7 +60,7 @@ export class GameWebSocket {
       }
 
       const { type, data } = result.data;
-      if (type in this.handlers && type !== "close") {
+      if (type in this.handlers) {
         for (const handler of this.handlers[type as keyof typeof this.handlers]) {
           handler(data);
         }

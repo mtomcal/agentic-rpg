@@ -7,3 +7,4 @@ htmlcov/
 *.egg-info/
 .next/
 node_modules/
+.playwright-mcp/
