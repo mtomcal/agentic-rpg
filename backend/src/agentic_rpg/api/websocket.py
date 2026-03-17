@@ -13,6 +13,11 @@ from pydantic import ValidationError
 
 from agentic_rpg.agent.context import assemble_context
 from agentic_rpg.agent.graph import build_agent_graph
+from agentic_rpg.agent.story_engine import (
+    activate_first_beat,
+    create_initial_story_state,
+    generate_outline,
+)
 from agentic_rpg.events.bus import EventBus
 from agentic_rpg.models.api import PlayerActionData
 from agentic_rpg.models.game_state import GameState, Message, MessageRole
@@ -89,6 +94,62 @@ def get_tools_and_model(
 
 
 # ---------------------------------------------------------------------------
+# Opening message generation
+# ---------------------------------------------------------------------------
+
+
+async def _generate_opening(
+    websocket: WebSocket, game_state: GameState, state_manager: StateManager
+) -> None:
+    """Generate story outline and opening narrative for a new session.
+
+    Skips if conversation history is non-empty (reconnection case).
+    """
+    if game_state.conversation.history:
+        return
+
+    # Generate story outline if none exists
+    if game_state.story.outline is None:
+        from agentic_rpg.llm.client import create_chat_model
+
+        model = create_chat_model()
+        char = game_state.character
+        setting = f"A {char.profession}'s adventure in a fantasy world"
+        character_summary = f"{char.name}, a {char.profession}. {char.background}"
+        outline = await generate_outline(model, setting, character_summary)
+        outline = activate_first_beat(outline)
+        game_state.story = create_initial_story_state(outline)
+
+    # Run agent to generate opening narrative
+    event_bus = EventBus()
+    tools, model = get_tools_and_model(game_state, event_bus)
+    context = assemble_context(
+        game_state, "Begin the adventure. Describe the opening scene."
+    )
+    graph = build_agent_graph(tools, model)
+    result = await graph.ainvoke({"messages": context["messages"]})
+    agent_text = result["messages"][-1].content
+
+    # Persist only agent message (no fake player message)
+    now = datetime.now(timezone.utc)
+    game_state.conversation.history.append(
+        Message(role=MessageRole.agent, content=agent_text, timestamp=now)
+    )
+    await state_manager.save_game_state(game_state)
+
+    # Send agent response and state snapshot
+    await websocket.send_json(
+        _make_message("agent_response", {"text": agent_text, "is_complete": True})
+    )
+    await websocket.send_json(
+        _make_message(
+            "state_snapshot",
+            {"game_state": json.loads(game_state.model_dump_json())},
+        )
+    )
+
+
+# ---------------------------------------------------------------------------
 # WebSocket endpoint
 # ---------------------------------------------------------------------------
 
@@ -140,6 +201,12 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str) -> None:
     except WebSocketDisconnect:
         hub.unregister(session_id)
         return
+
+    # -- Generate opening message for new sessions --
+    try:
+        await _generate_opening(websocket, game_state, state_manager)
+    except Exception:
+        logger.exception("Failed to generate opening for session %s", session_id)
 
     # -- Message loop --
     try:

@@ -156,6 +156,54 @@ describe("PlayPage", () => {
     expect(errorMsg?.content).toContain("Agent failed");
   });
 
+  it("connected with empty history triggers agent thinking and starts agent message", () => {
+    render(<PlayPage />);
+
+    const connectedHandler = wsInstance.onConnected.mock.calls[0][0];
+    act(() => {
+      connectedHandler({
+        game_state: {
+          session: { session_id: "sess-001", player_id: "p1", created_at: "", updated_at: "", schema_version: 1, status: "active" },
+          character: { id: "c1", name: "Test", profession: "Knight", background: "", stats: {}, status_effects: [], level: 1, experience: 0, location_id: "loc-001" },
+          inventory: { items: [], equipment: {}, capacity: null },
+          world: { locations: {}, current_location_id: "loc-001", discovered_locations: [], world_flags: {} },
+          story: { outline: null, active_beat_index: 0, summary: "", adaptations: [] },
+          conversation: { history: [], window_size: 20, summary: "" },
+          recent_events: [],
+        },
+      });
+    });
+
+    expect(useGameStore.getState().isAgentThinking).toBe(true);
+    const messages = useGameStore.getState().messages;
+    // startAgentMessage creates a streaming agent message
+    expect(messages.length).toBe(1);
+    expect(messages[0].role).toBe("agent");
+    expect(messages[0].isStreaming).toBe(true);
+  });
+
+  it("connected with existing history does NOT trigger thinking", () => {
+    render(<PlayPage />);
+
+    const connectedHandler = wsInstance.onConnected.mock.calls[0][0];
+    act(() => {
+      connectedHandler({
+        game_state: {
+          session: { session_id: "sess-001", player_id: "p1", created_at: "", updated_at: "", schema_version: 1, status: "active" },
+          character: { id: "c1", name: "Test", profession: "Knight", background: "", stats: {}, status_effects: [], level: 1, experience: 0, location_id: "loc-001" },
+          inventory: { items: [], equipment: {}, capacity: null },
+          world: { locations: {}, current_location_id: "loc-001", discovered_locations: [], world_flags: {} },
+          story: { outline: { premise: "", setting: "", beats: [] }, active_beat_index: 0, summary: "", adaptations: [] },
+          conversation: { history: [{ role: "agent", content: "Welcome!", timestamp: "2026-01-01T00:00:00Z", metadata: {} }], window_size: 20, summary: "" },
+          recent_events: [],
+        },
+      });
+    });
+
+    expect(useGameStore.getState().isAgentThinking).toBe(false);
+    expect(useGameStore.getState().messages.length).toBe(0);
+  });
+
   it("onClose handler sets connection status to disconnected", () => {
     render(<PlayPage />);
 

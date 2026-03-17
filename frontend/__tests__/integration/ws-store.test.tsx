@@ -50,7 +50,7 @@ const mockGameState = {
   inventory: { items: [], equipment: {}, capacity: null },
   world: { locations: {}, current_location_id: "loc-001", discovered_locations: [], world_flags: {} },
   story: { outline: { premise: "", setting: "", beats: [] }, active_beat_index: 0, summary: "", adaptations: [] },
-  conversation: { history: [], window_size: 20, summary: "" },
+  conversation: { history: [{ role: "agent", content: "Welcome!", timestamp: "2026-01-01T00:00:00Z", metadata: {} }], window_size: 20, summary: "" },
   recent_events: [],
 };
 

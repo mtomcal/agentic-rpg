@@ -1,18 +1,21 @@
 """WebSocket endpoint tests — RED phase."""
 
 import json
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import UUID, uuid4
 
 import pytest
 from starlette.testclient import TestClient
 
-from agentic_rpg.api.websocket import ConnectionHub
+from agentic_rpg.api.websocket import ConnectionHub, _generate_opening as _real_generate_opening
 from agentic_rpg.main import app
 from agentic_rpg.models.character import Character
 from agentic_rpg.models.game_state import (
     Conversation,
     GameState,
+    Message,
+    MessageRole,
     Session,
     SessionStatus,
 )
@@ -60,6 +63,13 @@ def ws_client():
     """TestClient with mocked DB pool for WebSocket tests."""
     app.state.db_pool = MagicMock()
     return TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def mock_generate_opening():
+    """Disable _generate_opening in all tests by default to prevent extra messages."""
+    with patch("agentic_rpg.api.websocket._generate_opening", new_callable=AsyncMock, create=True) as m:
+        yield m
 
 
 @pytest.fixture
@@ -497,3 +507,170 @@ class TestWebSocketDisconnect:
             assert hub_instance.get(session_id_str) is not None
             hub_instance.unregister(session_id_str)
             assert hub_instance.get(session_id_str) is None
+
+
+# ---------------------------------------------------------------------------
+# WebSocket opening message tests
+# ---------------------------------------------------------------------------
+
+
+class TestWebSocketOpeningMessage:
+    """Tests for auto-generated opening message on new sessions."""
+
+    def test_opening_generates_story_outline_when_none(self, ws_client, mock_generate_opening):
+        """Opening is called after connected message for new sessions."""
+        game_state = _make_game_state()
+        mock_sm = AsyncMock()
+        mock_sm.load_game_state = AsyncMock(return_value=game_state)
+        mock_sm.save_game_state = AsyncMock()
+
+        with patch("agentic_rpg.api.websocket.StateManager", return_value=mock_sm):
+            with ws_client.websocket_connect(
+                f"/api/v1/sessions/{SESSION_ID}/ws",
+                headers={"X-Player-ID": str(PLAYER_ID)},
+            ) as ws:
+                connected = ws.receive_json()
+                assert connected["type"] == "connected"
+
+        # _generate_opening was called with the websocket, game_state, and state_manager
+        mock_generate_opening.assert_called_once()
+        args = mock_generate_opening.call_args[0]
+        assert isinstance(args[1], GameState)
+
+    def test_opening_sends_agent_response_and_state_snapshot(self, ws_client, mock_generate_opening):
+        """Opening sends agent_response then state_snapshot after connected."""
+        game_state = _make_game_state()
+        mock_sm = AsyncMock()
+        mock_sm.load_game_state = AsyncMock(return_value=game_state)
+        mock_sm.save_game_state = AsyncMock()
+
+        mock_graph = AsyncMock()
+        mock_graph.ainvoke = AsyncMock(return_value={
+            "messages": [MagicMock(content="Welcome, brave warrior!")]
+        })
+        mock_context = {"messages": [MagicMock()], "game_state": {}, "system_prompt": ""}
+
+        from agentic_rpg.models.story import StoryOutline, StoryState
+
+        mock_outline_obj = StoryOutline(premise="A test", setting="Fantasy", beats=[])
+
+        # Replace the autouse mock with the real function
+        mock_generate_opening.side_effect = _real_generate_opening
+
+        with patch("agentic_rpg.api.websocket.StateManager", return_value=mock_sm), \
+             patch("agentic_rpg.api.websocket.generate_outline", new_callable=AsyncMock, return_value=mock_outline_obj), \
+             patch("agentic_rpg.api.websocket.activate_first_beat", return_value=mock_outline_obj), \
+             patch("agentic_rpg.api.websocket.create_initial_story_state", return_value=StoryState(outline=mock_outline_obj)), \
+             patch("agentic_rpg.api.websocket.build_agent_graph", return_value=mock_graph), \
+             patch("agentic_rpg.api.websocket.get_tools_and_model", return_value=([], MagicMock())), \
+             patch("agentic_rpg.api.websocket.assemble_context", return_value=mock_context):
+
+            with ws_client.websocket_connect(
+                f"/api/v1/sessions/{SESSION_ID}/ws",
+                headers={"X-Player-ID": str(PLAYER_ID)},
+            ) as ws:
+                connected = ws.receive_json()
+                assert connected["type"] == "connected"
+
+                response = ws.receive_json()
+                assert response["type"] == "agent_response"
+                assert response["data"]["text"] == "Welcome, brave warrior!"
+                assert response["data"]["is_complete"] is True
+
+                snapshot = ws.receive_json()
+                assert snapshot["type"] == "state_snapshot"
+
+    def test_opening_persists_only_agent_message(self, ws_client, mock_generate_opening):
+        """Opening persists only agent message (no fake player message) to history."""
+        game_state = _make_game_state()
+        mock_sm = AsyncMock()
+        mock_sm.load_game_state = AsyncMock(return_value=game_state)
+        mock_sm.save_game_state = AsyncMock()
+
+        mock_graph = AsyncMock()
+        mock_graph.ainvoke = AsyncMock(return_value={
+            "messages": [MagicMock(content="The adventure begins!")]
+        })
+        mock_context = {"messages": [MagicMock()], "game_state": {}, "system_prompt": ""}
+
+        from agentic_rpg.models.story import StoryOutline, StoryState
+
+        mock_outline_obj = StoryOutline(premise="A test", setting="Fantasy", beats=[])
+        mock_generate_opening.side_effect = _real_generate_opening
+
+        with patch("agentic_rpg.api.websocket.StateManager", return_value=mock_sm), \
+             patch("agentic_rpg.api.websocket.generate_outline", new_callable=AsyncMock, return_value=mock_outline_obj), \
+             patch("agentic_rpg.api.websocket.activate_first_beat", return_value=mock_outline_obj), \
+             patch("agentic_rpg.api.websocket.create_initial_story_state", return_value=StoryState(outline=mock_outline_obj)), \
+             patch("agentic_rpg.api.websocket.build_agent_graph", return_value=mock_graph), \
+             patch("agentic_rpg.api.websocket.get_tools_and_model", return_value=([], MagicMock())), \
+             patch("agentic_rpg.api.websocket.assemble_context", return_value=mock_context):
+
+            with ws_client.websocket_connect(
+                f"/api/v1/sessions/{SESSION_ID}/ws",
+                headers={"X-Player-ID": str(PLAYER_ID)},
+            ) as ws:
+                ws.receive_json()  # connected
+                ws.receive_json()  # agent_response
+                ws.receive_json()  # state_snapshot
+
+        # Check that save_game_state was called
+        mock_sm.save_game_state.assert_called_once()
+        saved_state = mock_sm.save_game_state.call_args[0][0]
+        # Only agent message, no player message
+        assert len(saved_state.conversation.history) == 1
+        assert saved_state.conversation.history[0].role == MessageRole.agent
+        assert saved_state.conversation.history[0].content == "The adventure begins!"
+
+    def test_opening_error_does_not_break_connection(self, ws_client, mock_generate_opening):
+        """If _generate_opening raises, the message loop still works."""
+        game_state = _make_game_state()
+        mock_sm = AsyncMock()
+        mock_sm.load_game_state = AsyncMock(return_value=game_state)
+
+        # Make _generate_opening raise an error
+        mock_generate_opening.side_effect = RuntimeError("Story generation failed")
+
+        with patch("agentic_rpg.api.websocket.StateManager", return_value=mock_sm):
+            with ws_client.websocket_connect(
+                f"/api/v1/sessions/{SESSION_ID}/ws",
+                headers={"X-Player-ID": str(PLAYER_ID)},
+            ) as ws:
+                connected = ws.receive_json()
+                assert connected["type"] == "connected"
+
+                # Message loop should still work
+                ws.send_json({"type": "unknown_type", "data": {}})
+                error = ws.receive_json()
+                assert error["type"] == "error"
+                assert error["data"]["code"] == "invalid_message_type"
+
+    def test_opening_skipped_on_reconnection(self, ws_client, mock_generate_opening):
+        """Opening is skipped when conversation history is non-empty (reconnection)."""
+        game_state = _make_game_state()
+        game_state.conversation.history.append(
+            Message(
+                role=MessageRole.agent,
+                content="Previously...",
+                timestamp=datetime.now(timezone.utc),
+            )
+        )
+        mock_sm = AsyncMock()
+        mock_sm.load_game_state = AsyncMock(return_value=game_state)
+
+        # Use real _generate_opening — it should detect non-empty history and skip
+        mock_generate_opening.side_effect = _real_generate_opening
+
+        with patch("agentic_rpg.api.websocket.StateManager", return_value=mock_sm):
+            with ws_client.websocket_connect(
+                f"/api/v1/sessions/{SESSION_ID}/ws",
+                headers={"X-Player-ID": str(PLAYER_ID)},
+            ) as ws:
+                connected = ws.receive_json()
+                assert connected["type"] == "connected"
+
+                # No agent_response should follow — send a message to verify loop works
+                ws.send_json({"type": "unknown_type", "data": {}})
+                error = ws.receive_json()
+                assert error["type"] == "error"
+                assert error["data"]["code"] == "invalid_message_type"

@@ -35,6 +35,10 @@ export default function PlayPage() {
     ws.onConnected((data: any) => {
       setGameState(data.game_state);
       setConnectionStatus("connected");
+      if (!data.game_state.conversation?.history?.length) {
+        setAgentThinking(true);
+        startAgentMessage();
+      }
     });
 
     ws.onAgentResponse((data: any) => {
