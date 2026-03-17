@@ -124,6 +124,67 @@ The story engine maintains:
 
 The story summary is updated after each beat resolves. It's a condensed narrative of the player's journey so far, used to keep the agent grounded in what has already happened.
 
+## Player View Redaction
+
+The full story outline is an internal structure — the player must never see future beats. All data sent to the frontend goes through a **player view** filter that redacts unreached content.
+
+### Rules
+
+1. **Resolved, active, skipped, and adapted beats** are visible — their summaries are sent as-is
+2. **Planned beats** (status `planned`) are redacted — summary is replaced with `"???"`, and all detail fields (`trigger_conditions`, `key_elements`, `player_objectives`, `possible_outcomes`) are replaced with empty lists
+3. **Beat count is visible** — the player can see "Chapter 3 of 7" but not what chapters 4-7 contain
+4. **Premise and setting are visible** — these are general enough not to spoil anything
+5. **Adaptation history is visible** — it describes past changes, not future ones
+
+### Implementation
+
+`StoryState` exposes a `to_player_view()` method that returns a copy with planned beats redacted:
+
+```python
+def to_player_view(self) -> StoryState:
+    """Return a copy safe for the frontend — future beats are redacted."""
+    if self.outline is None:
+        return self.model_copy()
+
+    redacted_beats = []
+    for beat in self.outline.beats:
+        if beat.status == BeatStatus.planned:
+            redacted_beats.append(beat.model_copy(update={
+                "summary": "???",
+                "trigger_conditions": [],
+                "key_elements": [],
+                "player_objectives": [],
+                "possible_outcomes": [],
+            }))
+        else:
+            redacted_beats.append(beat.model_copy())
+
+    redacted_outline = self.outline.model_copy(update={"beats": redacted_beats})
+    return self.model_copy(update={"outline": redacted_outline})
+```
+
+### Where redaction is applied
+
+Redaction happens at the **serialization boundary** — every place the backend sends game state to the frontend:
+
+- **WebSocket `connected` message**: `ConnectedData.game_state.story` uses player view
+- **WebSocket `state_snapshot` message**: `StateSnapshotData.game_state.story` uses player view
+- **REST `GET /sessions/{id}`**: `SessionDetailResponse.game_state.story` uses player view
+- **REST `GET /sessions/{id}/state`**: `StateSummaryResponse.story_beat` already only shows the active beat (no change needed)
+
+Redaction is **not** applied to:
+
+- The database (full outline is stored for agent use)
+- The agent's system prompt (agent needs full outline for foreshadowing)
+- Internal backend functions (story engine, tools, etc.)
+
+### Frontend handling
+
+The `StoryPanel` component should handle redacted beats gracefully:
+
+- Planned beats show a lock icon (🔒) instead of the circle (◯) and display "???" as the summary
+- This makes it clear to the player that future story content exists but is hidden
+
 ## Integration with the Agent
 
 The agent receives the story outline as part of its context (see [Agent System](agent-system.md)). Specifically:
